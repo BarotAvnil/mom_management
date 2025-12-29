@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model meeting_member {
+  meeting_member_id Int       @id @default(autoincrement())
+  meeting_id        Int?
+  staff_id          Int?
+  is_present        Boolean?  @default(false)
+  remarks           String?
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at        DateTime? @default(now()) @db.Timestamp(6)
+  meetings          meetings? @relation(fields: [meeting_id], references: [meeting_id], onDelete: Cascade, onUpdate: NoAction)
+  staff             staff?    @relation(fields: [staff_id], references: [staff_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([meeting_id, staff_id])
+}
+
+model meeting_type {
+  meeting_type_id   Int        @id @default(autoincrement())
+  meeting_type_name String     @db.VarChar(100)
+  remarks           String?
+  created_at        DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?  @default(now()) @db.Timestamp(6)
+  meetings          meetings[]
+}
+
+model meetings {
+  meeting_id            Int              @id @default(autoincrement())
+  meeting_date          DateTime         @db.Timestamp(6)
+  meeting_type_id       Int?
+  meeting_description   String?
+  document_path         String?          @db.VarChar(255)
+  is_cancelled          Boolean?         @default(false)
+  cancellation_reason   String?
+  cancellation_datetime DateTime?        @db.Timestamp(6)
+  created_at            DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at            DateTime?        @default(now()) @db.Timestamp(6)
+  meeting_member        meeting_member[]
+  meeting_type          meeting_type?    @relation(fields: [meeting_type_id], references: [meeting_type_id], onDelete: NoAction, onUpdate: NoAction)
+  created_by            Int?
+  creator               users?           @relation(fields: [created_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  meeting_admin_id      Int?
+  meeting_admin         users?           @relation("MeetingAdmin", fields: [meeting_admin_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model staff {
+  staff_id       Int              @id @default(autoincrement())
+  staff_name     String           @db.VarChar(100)
+  mobile_no      String?          @db.VarChar(15)
+  email          String?          @db.VarChar(100)
+  remarks        String?
+  created_at     DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at     DateTime?        @default(now()) @db.Timestamp(6)
+  meeting_member meeting_member[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  user_id    Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  role       String
+  created_at       DateTime   @default(now())
+  meetings         meetings[]
+  managed_meetings meetings[] @relation("MeetingAdmin")
+}
+
+
