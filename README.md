@@ -1,78 +1,94 @@
-# MOM Management System
+# 📝 Minutes of Meeting (MOM) Management System
 
-A comprehensive web application for managing Minutes of Meeting (MOM), attendance, staff, and overall meeting workflows. This system streamlines the process of scheduling meetings, tracking participation, and storing critical documentation.
+A comprehensive web application designed to streamline the process of scheduling meetings, recording minutes, tracking attendance, and managing action items. Built with modern web technologies, this system ensures efficient collaboration and accountability within organizations.
 
-## 🚀 Features
+## ✨ Key Features
 
--   **Meeting Management**: effortlessly schedule, update, and organize meetings with detailed descriptions and types.
--   **Attendance Tracking**: Precise tracking of staff attendance (Present/Absent) with remarks for every meeting.
--   **MOM Uploads**: Securely upload and retrieve Minutes of Meeting documents directly within the meeting details.
--   **Staff Management**: Maintain a centralized database of staff members, including contact details and roles.
--   **Dashboard & Reports**: Visual insights into meeting statistics, attendance trends, and recent activities.
--   **User Roles**: Role-based access control (Admin, User) for secure data management.
--   **Meeting Types**: Customizable meeting categories (e.g., Board Meeting, Team Standup) for better organization.
+- **📊 Dashboard Overview**: Get a quick glimpse of upcoming meetings, pending action items, and recent activities.
+- **📅 Meeting Management**: 
+    - Schedule new meetings with detailed agendas.
+    - Categorize meetings by type (e.g., HR, Tech, General).
+    - Track meeting status (Scheduled, Completed, Cancelled).
+- **📝 Minutes Recording**: Upload and manage meeting minutes documents securely.
+- **✅ Action Items**:
+    - Assign actionable tasks to staff members during or after meetings.
+    - Track completion status and due dates.
+- **busts_in_silhouette Attendance Tracking**: Record and monitor staff attendance for every meeting.
+- **👥 Staff & User Management**: Manage staff profiles and system user roles (Admin/Standard).
+- **📈 Reports**: Generate insights and reports on meeting activities.
+- **🔐 Secure Authentication**: Role-based access control ensuring data security.
 
 ## 🛠️ Tech Stack
 
-This project is built using modern web technologies for performance and scalability:
+- **Frontend**: 
+    - [Next.js 16](https://nextjs.org/) (App Router)
+    - [React 19](https://react.dev/)
+    - [Tailwind CSS v4](https://tailwindcss.com/) for styling
+    - [Framer Motion](https://www.framer.com/motion/) for animations
+    - [Lucide React](https://lucide.dev/) for icons
+- **Backend**: 
+    - Next.js API Routes (Serverless functions)
+    - [Prisma ORM](https://www.prisma.io/) for database interaction
+- **Database**: 
+    - [PostgreSQL](https://www.postgresql.org/)
+- **Authentication**: 
+    - JWT (JSON Web Tokens) with `jose` and `bcryptjs`
 
--   **Frontend & Framework**: [Next.js 16](https://nextjs.org/) (App Router)
--   **Language**: [TypeScript](https://www.typescriptlang.org/)
--   **Database**: [PostgreSQL](https://www.postgresql.org/)
--   **ORM**: [Prisma](https://www.prisma.io/)
--   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
--   **Authentication**: JWT-based auth (using [jose](https://github.com/panva/jose) and [bcryptjs](https://github.com/dcodeIO/bcrypt.js))
+## 🚀 Getting Started
 
-## 📦 Getting Started
-
-Follow these steps to set up the project locally.
+Follow these instructions to get the project up and running on your local machine.
 
 ### Prerequisites
 
--   **Node.js** (v18 or higher recommended)
--   **PostgreSQL** (Ensure a local or cloud instance is running)
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [PostgreSQL](https://www.postgresql.org/) database instance
+- npm or yarn package manager
 
 ### Installation
 
-1.  **Clone the repository**:
+1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/yourusername/mom_management.git
     cd mom_management
     ```
 
-2.  **Install dependencies**:
+2.  **Install dependencies:**
     ```bash
     npm install
+    # or
+    yarn install
     ```
 
-3.  **Environment Setup**:
+3.  **Set up Environment Variables:**
     Create a `.env` file in the root directory and add your database connection string and other secrets:
     ```env
     DATABASE_URL="postgresql://user:password@localhost:5432/mom_db?schema=public"
-    # Add other environment variables as needed (e.g., JWT_SECRET)
+    JWT_SECRET="your-super-secret-jwt-key"
+    NEXT_PUBLIC_APP_URL="http://localhost:3000"
     ```
 
-4.  **Database Setup**:
-    Push the Prisma schema to your database:
+4.  **Database Setup:**
+    Sync your Prisma schema with the database:
     ```bash
+    npx prisma generate
     npx prisma db push
+    # or for migrations
+    # npx prisma migrate dev --name init
     ```
-    *(Optional) Seed the database if a seed script is provided in `package.json`.*
 
-5.  **Run the Application**:
+5.  **Run the Development Server:**
     ```bash
     npm run dev
     ```
+
     Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 📂 Project Structure
+## 📜 Scripts
 
--   `/app`: Main application routes and pages (Next.js App Router).
--   `/components`: Reusable UI components.
--   `/lib`: Utility functions and shared logic.
--   `/prisma`: Database schema and migrations.
--   `/public`: Static assets.
--   `/scripts`: Maintenance and utility scripts.
+- `npm run dev`: Runs the app in development mode.
+- `npm run build`: Builds the app for production.
+- `npm run start`: Starts the production server.
+- `npm run lint`: Runs ESLint to check for code quality issues.
 
 ## 🤝 Contributing
 
@@ -80,4 +96,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
