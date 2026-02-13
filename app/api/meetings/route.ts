@@ -32,7 +32,12 @@ export async function GET(req: Request) {
     const meetings = await prisma.meetings.findMany({
       where: whereClause,
       include: {
-        meeting_type: true
+        meeting_type: true,
+        meeting_member: {
+          include: {
+            staff: true
+          }
+        }
       },
       orderBy: { meeting_date: 'desc' }
     })
@@ -55,7 +60,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Forbidden: Admins and Conveners only' }, { status: 403 })
     }
 
-    const { meetingDate, meetingTypeId, description, staffIds, meetingAdminId } = await req.json()
+    const { meetingDate, meetingTypeId, description, staffIds, meetingAdminId, meetingLink } = await req.json()
 
     if (!meetingDate || !meetingTypeId) {
       return NextResponse.json(
@@ -74,7 +79,8 @@ export async function POST(req: Request) {
           meeting_type_id: meetingTypeId,
           meeting_description: description,
           created_by: userId ? Number(userId) : null,
-          meeting_admin_id: meetingAdminId ? Number(meetingAdminId) : null
+          meeting_admin_id: meetingAdminId ? Number(meetingAdminId) : null,
+          meeting_link: meetingLink || null
         }
       })
 
@@ -89,6 +95,9 @@ export async function POST(req: Request) {
       }
 
       return m
+    }, {
+      maxWait: 5000, // Wait up to 5s for a connection
+      timeout: 10000 // Transaction can take up to 10s
     })
 
     return NextResponse.json({

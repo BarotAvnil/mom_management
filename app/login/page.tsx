@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast } from '@/components/ui/Toast'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Loader2, ArrowRight, ShieldCheck } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -13,7 +17,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // If already logged in → dashboard
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) router.push('/dashboard')
@@ -36,17 +39,13 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed')
       }
 
-      // Token is set in Cookies by the server (HttpOnly)
-      // We also save it to localStorage for client-side access if needed (optional)
       localStorage.setItem('token', data.token)
-
       addToast(`Welcome back, ${data.user.name}!`, 'success')
 
-      // Role Based Redirection
       if (data.user.role === 'ADMIN') {
-        router.push('/dashboard') // Admin Dashboard
+        router.push('/dashboard')
       } else {
-        router.push('/dashboard') // Staff Dashboard (Same for now, can be /staff-dashboard)
+        router.push('/dashboard')
       }
 
     } catch (err: any) {
@@ -57,56 +56,132 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm space-y-8 animate-fade-in">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-primary text-primary-foreground rounded-lg mx-auto flex items-center justify-center text-xl font-bold mb-6">
-            M
+    <div className="min-h-screen w-full flex">
+      {/* Left: Branding & Visuals */}
+      <div className="hidden lg:flex w-1/2 bg-zinc-900 text-white p-12 flex-col justify-between relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent"></div>
+
+        <div className="relative z-10 animate-fade-in">
+          <div className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            MOM Mgmt
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Welcome back</h1>
-          <p className="text-sm text-muted-foreground mt-2">Enter your credentials to access your account</p>
         </div>
 
-        <form onSubmit={login} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Email</label>
-            <input
-              type="email"
-              required
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="name@example.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
+        <div className="relative z-10 space-y-6 max-w-lg animate-slide-up delay-100">
+          <blockquote className="text-2xl font-medium leading-relaxed">
+            "Efficiency is doing things right; effectiveness is doing the right things. This platform handles both."
+          </blockquote>
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
+              AD
+            </div>
+            <div>
+              <p className="font-semibold">Admin Dashboard</p>
+              <p className="text-sm text-zinc-400">Enterprise Solutions</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 text-sm text-zinc-500 animate-slide-up delay-200">
+          © 2024 MOM Management System. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right: Login Form */}
+      <div className="flex-1 flex items-center justify-center p-6 bg-background">
+        <div className="w-full max-w-md space-y-8 animate-slide-up">
+          <div className="text-center lg:text-left space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+            <p className="text-muted-foreground">Enter your credentials to access your account</p>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Password</label>
-            <input
-              type="password"
-              required
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
+          <form onSubmit={login} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="email">
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="bg-secondary/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="password">
+                    Password
+                  </label>
+                  <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="bg-secondary/30"
+                />
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full h-11" disabled={loading} size="lg">
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign In
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 w-full py-2"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
+          <div className="grid grid-cols-2 gap-4">
+            <Button variant="outline" type="button" disabled={loading}>
+              GitHub
+            </Button>
+            <Button variant="outline" type="button" disabled={loading}>
+              Google
+            </Button>
+          </div>
 
-        <div className="text-center text-sm text-muted-foreground">
-          <p>
-            Don't have an account? <span className="font-medium text-foreground underline decoration-border hover:decoration-foreground transition-all cursor-help" title="Ask your admin">Contact Admin</span>
+          <p className="text-center text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <span className="font-semibold text-primary hover:underline cursor-pointer" title="Contact System Administrator">
+              Contact Admin
+            </span>
           </p>
         </div>
       </div>
     </div>
   )
 }
+

@@ -74,7 +74,7 @@ export async function PUT(
     const { meetingId } = await context.params
     const id = Number(meetingId)
     // Extract everything, including staffIds!
-    const { meetingDate, meetingTypeId, description, isCancelled, cancellationReason, staffIds } = await req.json()
+    const { meetingDate, meetingTypeId, description, isCancelled, cancellationReason, isCompleted, staffIds, meetingLink } = await req.json()
 
     // 1. Permission Check
     const userId = req.headers.get('x-user-id')
@@ -118,6 +118,8 @@ export async function PUT(
           meeting_date: meetingDate ? new Date(meetingDate) : undefined,
           meeting_type_id: meetingTypeId ? Number(meetingTypeId) : undefined,
           meeting_description: description,
+          is_completed: isCompleted,
+          meeting_link: meetingLink,
           ...cancellationData,
           updated_at: new Date()
         }
@@ -159,6 +161,9 @@ export async function PUT(
         }
       }
       return m
+    }, {
+      maxWait: 5000,
+      timeout: 10000
     })
 
     return NextResponse.json({ message: 'Updated successfully', data: updated })

@@ -7,8 +7,10 @@ import { useAuth } from '@/lib/useAuth'
 export default function MeetingsPage() {
     const { token, ready } = useAuth()
     const [meetings, setMeetings] = useState<any[]>([])
+    const [meetingTypes, setMeetingTypes] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
+    const [selectedType, setSelectedType] = useState('')
 
     const fetchMeetings = async () => {
         try {
@@ -19,6 +21,13 @@ export default function MeetingsPage() {
             // Support both { data: [...] } and directly [...] for backward compatibility if any
             const list = Array.isArray(data) ? data : (data.data || [])
             setMeetings(list)
+
+            // Fetch Types
+            const tRes = await fetch('/api/meeting-type', {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const tData = await tRes.json()
+            if (tData.data) setMeetingTypes(tData.data)
         } catch (err) {
             console.error(err)
         } finally {
@@ -38,10 +47,13 @@ export default function MeetingsPage() {
         )
     }
 
-    const filteredMeetings = meetings.filter(m =>
-        (m.meeting_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (m.meeting_type?.meeting_type_name || '').toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const filteredMeetings = meetings.filter(m => {
+        const matchesSearch = (m.meeting_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (m.meeting_type?.meeting_type_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesType = selectedType ? String(m.meeting_type_id) === selectedType : true
+
+        return matchesSearch && matchesType
+    })
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
@@ -51,15 +63,28 @@ export default function MeetingsPage() {
                     <p className="text-slate-500 mt-1">Manage all your scheduled meetings</p>
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative w-full md:w-64">
-                    <input
-                        placeholder="Search meetings..."
-                        className="w-full pl-10 pr-4 py-2 rounded-full border border-slate-200 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
-                    <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                {/* Search Bar & Filter */}
+                <div className="flex gap-2 w-full md:w-auto">
+                    <select
+                        value={selectedType}
+                        onChange={e => setSelectedType(e.target.value)}
+                        className="px-4 py-2 rounded-full border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/50 bg-white"
+                    >
+                        <option value="">All Types</option>
+                        {meetingTypes.map(t => (
+                            <option key={t.meeting_type_id} value={t.meeting_type_id}>{t.meeting_type_name}</option>
+                        ))}
+                    </select>
+
+                    <div className="relative w-full md:w-64">
+                        <input
+                            placeholder="Search meetings..."
+                            className="w-full pl-10 pr-4 py-2 rounded-full border border-slate-200 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                        <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                    </div>
                 </div>
             </div>
 
@@ -71,50 +96,55 @@ export default function MeetingsPage() {
                         <p className="text-slate-500">Try adjusting your search or schedule a new meeting from the dashboard.</p>
                     </div>
                 ) : (
-                    filteredMeetings.map((m, i) => (
-                        <Link
-                            key={m.meeting_id}
-                            href={`/meetings/${m.meeting_id}`}
-                            className="group block"
-                        >
-                            <div
-                                className="glass-card flex flex-col md:flex-row md:items-center justify-between p-6 rounded-xl animate-slide-in hover:border-indigo-200"
-                                style={{ animationDelay: `${i * 50}ms` }}
+                    filteredMeetings.map((m, i) => {
+
+                        return (
+                            <Link
+                                key={m.meeting_id}
+                                href={`/meetings/${m.meeting_id}`}
+                                className="group block"
                             >
-                                <div className="flex items-start gap-4">
-                                    <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl border font-bold ${m.is_cancelled ? 'bg-red-50 border-red-100 text-red-600' : 'bg-white border-slate-200 text-slate-700'}`}>
-                                        <span className="text-xs uppercase tracking-wide opacity-70">{new Date(m.meeting_date).toLocaleString('en-US', { month: 'short' })}</span>
-                                        <span className="text-xl">{new Date(m.meeting_date).getDate()}</span>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
-                                                {m.meeting_description || 'No Description'}
-                                            </h3>
-                                            {m.is_cancelled && <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-bold">CANCELLED</span>}
+                                <div
+                                    className="glass-card flex flex-col md:flex-row md:items-center justify-between p-6 rounded-xl animate-slide-in hover:border-indigo-200"
+                                    style={{ animationDelay: `${i * 50}ms` }}
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl border font-bold ${m.is_cancelled ? 'bg-red-50 border-red-100 text-red-600' : 'bg-white border-slate-200 text-slate-700'}`}>
+                                            <span className="text-xs uppercase tracking-wide opacity-70">{new Date(m.meeting_date).toLocaleString('en-US', { month: 'short' })}</span>
+                                            <span className="text-xl">{new Date(m.meeting_date).getDate()}</span>
                                         </div>
 
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-slate-500">
-                                            <span className="flex items-center gap-1">
-                                                ⏰ {new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                            <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                                            <span className="flex items-center gap-1">
-                                                🏷️ {m.meeting_type?.meeting_type_name || 'General'}
-                                            </span>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                                                    {m.meeting_description || 'No Description'}
+                                                </h3>
+                                                {m.is_cancelled && <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-bold">CANCELLED</span>}
+                                                {!m.is_cancelled && m.is_completed && <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full font-bold">COMPLETED</span>}
+                                                {!m.is_cancelled && !m.is_completed && new Date() > new Date(m.meeting_date) && <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-bold animate-pulse">IN PROGRESS</span>}
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-slate-500">
+                                                <span className="flex items-center gap-1">
+                                                    ⏰ {new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                                <span className="flex items-center gap-1">
+                                                    🏷️ {m.meeting_type?.meeting_type_name || 'General'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 md:mt-0 flex items-center justify-end">
+                                        <div className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white group-hover:pl-1 transition-all shadow-sm">
+                                            ➜
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="mt-4 md:mt-0 flex items-center justify-end">
-                                    <div className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white group-hover:pl-1 transition-all shadow-sm">
-                                        ➜
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
-                    ))
+                            </Link>
+                        )
+                    })
                 )}
             </div>
         </div>

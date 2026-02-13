@@ -3,15 +3,17 @@
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import { ToastProvider } from '@/components/ui/Toast'
+import { MeetingNotifier } from '@/components/MeetingNotifier'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
 
     // Pages that don't need the sidebar (auth pages)
-    const isAuthPage = pathname === '/login' || pathname === '/register'
+    const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname === '/reset-password'
 
     return (
         <ToastProvider>
+            <MeetingNotifier />
             <div className="flex h-full w-full">
                 {/* Show Sidebar only if not on auth pages */}
                 {!isAuthPage && <Sidebar />}

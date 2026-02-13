@@ -13,6 +13,7 @@ export default function DashboardPage() {
 
   // Data State
   const [stats, setStats] = useState({ total: 0, cancelled: 0, pendingMOM: 0 })
+  const [ongoing, setOngoing] = useState<any[]>([])
   const [upcoming, setUpcoming] = useState<any[]>([])
   const [recentMOMs, setRecentMOMs] = useState<any[]>([])
   const [meetingTypes, setMeetingTypes] = useState<any[]>([])
@@ -26,7 +27,7 @@ export default function DashboardPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [newMeeting, setNewMeeting] = useState({
-    date: '',
+    date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
     typeId: '',
     desc: '',
     staffIds: [] as string[],
@@ -43,6 +44,7 @@ export default function DashboardPage() {
       const data = await res.json()
       if (res.ok) {
         setStats(data.data.stats)
+        setOngoing(data.data.ongoing)
         setUpcoming(data.data.upcoming)
         setRecentMOMs(data.data.recentMOMs)
       }
@@ -112,7 +114,7 @@ export default function DashboardPage() {
 
       if (res.ok) {
         setIsModalOpen(false)
-        setNewMeeting({ date: '', typeId: '', desc: '', staffIds: [], meetingAdminId: '' })
+        setNewMeeting({ date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16), typeId: '', desc: '', staffIds: [], meetingAdminId: '' })
         addToast('Meeting scheduled successfully!', 'success')
         const data = await res.json()
         setTimeout(() => router.push(`/meetings/${data.data.meeting_id}`), 500)
@@ -156,6 +158,37 @@ export default function DashboardPage() {
         <StatCard delay={200} title="Pending MOMs" value={stats.pendingMOM} icon="📝" color="bg-secondary text-amber-600" />
       </div>
 
+      {/* ONGOING MEETINGS (High Priority) */}
+      {ongoing.length > 0 && (
+        <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-6 animate-slide-in">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+              </span>
+              Ongoing Meetings
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {ongoing.map(m => (
+              <Link href={`/meetings/${m.meeting_id}`} key={m.meeting_id} className="block group">
+                <div className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md uppercase tracking-wide">Happening Now</span>
+                    <span className="text-xs text-slate-500">{new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-indigo-700 transition-colors">{m.meeting_description || 'No Description'}</h3>
+                  <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
+                    <span>🏷️ {m.meeting_type?.meeting_type_name}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* UPCOMING MEETINGS */}
         <div className="bg-card border border-border rounded-xl p-6 animate-slide-in" style={{ animationDelay: '300ms' }}>
@@ -172,30 +205,39 @@ export default function DashboardPage() {
                 <button onClick={() => setIsModalOpen(true)} className="text-primary font-medium mt-2 hover:underline">Schedule one now</button>
               </div>
             ) : (
-              upcoming.map((m, i) => (
-                <Link
-                  href={`/meetings/${m.meeting_id}`}
-                  key={m.meeting_id}
-                  className="block group"
-                >
-                  <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg border border-transparent group-hover:border-border group-hover:bg-secondary transition-all duration-200">
-                    <div className="flex gap-4">
-                      <div className="flex flex-col items-center justify-center w-12 h-12 bg-background rounded-md border border-border font-bold text-foreground">
-                        <span className="text-[10px] text-muted-foreground uppercase">{new Date(m.meeting_date).toLocaleString('en-US', { month: 'short' })}</span>
-                        <span className="text-lg leading-none">{new Date(m.meeting_date).getDate()}</span>
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">{m.meeting_description || 'No Description'}</div>
-                        <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                          {new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          <span className="text-border">•</span>
-                          {m.meeting_type?.meeting_type_name}
+              upcoming.map((m, i) => {
+                const meetingDate = new Date(m.meeting_date)
+                const endOfDay = new Date(meetingDate.getFullYear(), meetingDate.getMonth(), meetingDate.getDate(), 23, 59, 59)
+                const isEnded = m.is_completed || (!m.is_cancelled && new Date() > endOfDay)
+
+                return (
+                  <Link
+                    href={`/meetings/${m.meeting_id}`}
+                    key={m.meeting_id}
+                    className="block group"
+                  >
+                    <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg border border-transparent group-hover:border-border group-hover:bg-secondary transition-all duration-200">
+                      <div className="flex gap-4">
+                        <div className="flex flex-col items-center justify-center w-12 h-12 bg-background rounded-md border border-border font-bold text-foreground">
+                          <span className="text-[10px] text-muted-foreground uppercase">{new Date(m.meeting_date).toLocaleString('en-US', { month: 'short' })}</span>
+                          <span className="text-lg leading-none">{new Date(m.meeting_date).getDate()}</span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-foreground flex items-center gap-2">
+                            {m.meeting_description || 'No Description'}
+                            {isEnded && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600">ENDED</span>}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                            {new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <span className="text-border">•</span>
+                            {m.meeting_type?.meeting_type_name}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              ))
+                  </Link>
+                )
+              })
             )}
           </div>
         </div>

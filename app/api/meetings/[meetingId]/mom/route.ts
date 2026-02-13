@@ -18,6 +18,31 @@ export async function POST(
       )
     }
 
+    // VISIBILITY CHECK
+    const userId = req.headers.get('x-user-id')
+    const role = req.headers.get('x-user-role')
+
+    if (role !== 'ADMIN') {
+      const meeting = await prisma.meetings.findUnique({
+        where: { meeting_id: id },
+        include: { meeting_member: true }
+      })
+
+      if (!meeting) return NextResponse.json({ message: 'Meeting not found' }, { status: 404 })
+
+      // Logic: Only participants can VIEW/DOWNLOAD (if this was GET). But this is POST (Upload).
+      // Upload should probably be restricted to Admins/Creators/MeetingAdmins? Or participants too?
+      // Usually only Minutetaker uploads. For now, let's allow "Meeting Admin" or "Creator" or "System Admin".
+      // Participants usually just view.
+
+      const isCreator = meeting.created_by === Number(userId)
+      const isMeetingAdmin = meeting.meeting_admin_id === Number(userId)
+
+      if (!isCreator && !isMeetingAdmin) {
+        return NextResponse.json({ message: 'Forbidden: Only Admins can upload MOM' }, { status: 403 })
+      }
+    }
+
     const formData = await req.formData()
     const file = formData.get('file') as File | null
 

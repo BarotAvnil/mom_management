@@ -36,7 +36,9 @@ model meetings {
   meeting_type_id       Int?
   meeting_description   String?
   document_path         String?          @db.VarChar(255)
+  meeting_link          String?          @db.VarChar(512)
   is_cancelled          Boolean?         @default(false)
+  is_completed          Boolean?         @default(false)
   cancellation_reason   String?
   cancellation_datetime DateTime?        @db.Timestamp(6)
   created_at            DateTime?        @default(now()) @db.Timestamp(6)
@@ -47,6 +49,22 @@ model meetings {
   creator               users?           @relation(fields: [created_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
   meeting_admin_id      Int?
   meeting_admin         users?           @relation("MeetingAdmin", fields: [meeting_admin_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  action_items          ActionItem[]
+}
+
+model ActionItem {
+  action_item_id Int       @id @default(autoincrement())
+  description    String
+  is_completed   Boolean   @default(false)
+  due_date       DateTime? @db.Timestamp(6)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  updated_at     DateTime? @default(now()) @db.Timestamp(6)
+
+  meeting_id     Int
+  meeting        meetings  @relation(fields: [meeting_id], references: [meeting_id], onDelete: Cascade)
+
+  assigned_to    Int?
+  assignee       staff?    @relation(fields: [assigned_to], references: [staff_id], onDelete: SetNull)
 }
 
 model staff {
@@ -58,6 +76,7 @@ model staff {
   created_at     DateTime?        @default(now()) @db.Timestamp(6)
   updated_at     DateTime?        @default(now()) @db.Timestamp(6)
   meeting_member meeting_member[]
+  assigned_actions ActionItem[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -70,6 +89,8 @@ model users {
   created_at       DateTime   @default(now())
   meetings         meetings[]
   managed_meetings meetings[] @relation("MeetingAdmin")
+  reset_token      String?
+  reset_token_expiry DateTime?
 }
 
 
