@@ -1,38 +1,49 @@
 # 📝 Minutes of Meeting (MOM) Management System
 
-A comprehensive web application designed to streamline the process of scheduling meetings, recording minutes, tracking attendance, and managing action items. Built with modern web technologies, this system ensures efficient collaboration and accountability within organizations.
+A comprehensive, multi-tenant web application designed to streamline the process of scheduling meetings, recording minutes, tracking attendance, and managing action items. Built with the latest web technologies, this system ensures efficient collaboration, accountability, and administrative oversight within organizations.
 
 ## ✨ Key Features
 
-- **📊 Dashboard Overview**: Get a quick glimpse of upcoming meetings, pending action items, and recent activities.
-- **📅 Meeting Management**: 
-    - Schedule new meetings with detailed agendas.
-    - Categorize meetings by type (e.g., HR, Tech, General).
-    - Track meeting status (Scheduled, Completed, Cancelled).
-- **📝 Minutes Recording**: Upload and manage meeting minutes documents securely.
-- **✅ Action Items**:
-    - Assign actionable tasks to staff members during or after meetings.
-    - Track completion status and due dates.
-- **busts_in_silhouette Attendance Tracking**: Record and monitor staff attendance for every meeting.
-- **👥 Staff & User Management**: Manage staff profiles and system user roles (Admin/Standard).
-- **📈 Reports**: Generate insights and reports on meeting activities.
-- **🔐 Secure Authentication**: Role-based access control ensuring data security.
+### 🏢 Super Admin & Multi-Tenancy
+- **Tenant Management**: seamless handling of multiple companies within a single deployment.
+- **User Administration**: Centralized control to manage users across different organizations.
+- **🛡️ Audit Logs**: Comprehensive tracking of critical system actions (logins, user changes, settings updates) for security and compliance.
+- **Registration Workflow**: Streamlined company registration and approval process.
+
+### 📅 Meeting Management
+- **Dashboard Overview**: Instant visibility into upcoming meetings, pending tasks, and recent activities.
+- **Smart Scheduling**: Schedule meetings with detailed agendas, dates, and dynamic **Meeting Types** (e.g., HR, Tech, General).
+- **Status Tracking**: Monitor meetings through their lifecycle (Scheduled, Completed, Cancelled).
+- **MOM Uploads**: Securely upload and store Minutes of Meeting documents.
+
+### ✅ Action Items & Accountability
+- **Task Assignment**: Assign actionable tasks to specific staff members directly from meeting records.
+- **Progress Tracking**: Monitor completion status and due dates for all assigned action items.
+- **Attendance**: Record and verify staff presence for every meeting.
+
+### 👥 Staff & Access Control
+- **Role-Based Access**: Granular permissions for Super Admins, Company Admins, and Standard Members.
+- **Staff Profiles**: detailed profiles with contact information and department association.
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: 
-    - [Next.js 16](https://nextjs.org/) (App Router)
-    - [React 19](https://react.dev/)
-    - [Tailwind CSS v4](https://tailwindcss.com/) for styling
-    - [Framer Motion](https://www.framer.com/motion/) for animations
-    - [Lucide React](https://lucide.dev/) for icons
-- **Backend**: 
-    - Next.js API Routes (Serverless functions)
-    - [Prisma ORM](https://www.prisma.io/) for database interaction
-- **Database**: 
-    - [PostgreSQL](https://www.postgresql.org/)
-- **Authentication**: 
-    - JWT (JSON Web Tokens) with `jose` and `bcryptjs`
+### Frontend
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Library**: [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Theme**: [Next-Themes](https://github.com/pacocoursey/next-themes) for Dark/Light mode support
+
+### Backend
+- **Runtime**: Next.js Server Actions & API Routes
+- **Database**: [PostgreSQL](https://www.postgresql.org/)
+- **ORM**: [Prisma](https://www.prisma.io/) (v6+)
+
+### Security & Validations
+- **Authentication**: Custom JWT implementation with `jose`
+- **Encryption**: `bcryptjs` for secure password hashing
+- **Validation**: Strict schema validation ensures data integrity
 
 ## 🚀 Getting Started
 
@@ -60,7 +71,7 @@ Follow these instructions to get the project up and running on your local machin
     ```
 
 3.  **Set up Environment Variables:**
-    Create a `.env` file in the root directory and add your database connection string and other secrets:
+    Create a `.env` file in the root directory and configure your secrets:
     ```env
     DATABASE_URL="postgresql://user:password@localhost:5432/mom_db?schema=public"
     JWT_SECRET="your-super-secret-jwt-key"
@@ -72,8 +83,6 @@ Follow these instructions to get the project up and running on your local machin
     ```bash
     npx prisma generate
     npx prisma db push
-    # or for migrations
-    # npx prisma migrate dev --name init
     ```
 
 5.  **Run the Development Server:**
@@ -89,6 +98,7 @@ Follow these instructions to get the project up and running on your local machin
 - `npm run build`: Builds the app for production.
 - `npm run start`: Starts the production server.
 - `npm run lint`: Runs ESLint to check for code quality issues.
+- `npm run postinstall`: Generates Prisma client.
 
 ## 🤝 Contributing
 
@@ -96,4 +106,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
