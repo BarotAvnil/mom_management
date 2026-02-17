@@ -1,46 +1,12 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Loader2, ArrowLeft, Mail, ShieldCheck } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
+import { ShieldCheck, ArrowLeft, UserCog } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
-    const { addToast } = useToast()
-    const [email, setEmail] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [submitted, setSubmitted] = useState(false)
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-
-        try {
-            const res = await fetch('/api/auth/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            })
-
-            const data = await res.json()
-
-            if (!res.ok) throw new Error(data.message)
-
-            setSubmitted(true)
-            addToast('Reset link sent!', 'success')
-
-        } catch (error: any) {
-            addToast(error.message || 'Something went wrong', 'error')
-        } finally {
-            setLoading(false)
-        }
-    }
-
     return (
         <div className="min-h-screen w-full flex">
-            {/* Left: Branding & Visuals (Same as Login) */}
+            {/* Left: Branding & Visuals */}
             <div className="hidden lg:flex w-1/2 bg-zinc-900 text-white p-12 flex-col justify-between relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent"></div>
@@ -56,7 +22,7 @@ export default function ForgotPasswordPage() {
 
                 <div className="relative z-10 space-y-6 max-w-lg animate-slide-up delay-100">
                     <blockquote className="text-2xl font-medium leading-relaxed">
-                        "Security is not just about passwords; it's about peace of mind. Recover yours securely."
+                        &quot;Security is not just about passwords; it&apos;s about peace of mind. Your administrator is here to help.&quot;
                     </blockquote>
                 </div>
 
@@ -65,69 +31,39 @@ export default function ForgotPasswordPage() {
                 </div>
             </div>
 
-            {/* Right: Forgot Password Form */}
+            {/* Right: Contact Admin Message */}
             <div className="flex-1 flex items-center justify-center p-6 bg-background">
                 <div className="w-full max-w-md space-y-8 animate-slide-up">
-                    <div className="text-center lg:text-left space-y-2">
-                        <h1 className="text-3xl font-bold tracking-tight">Forgot password?</h1>
-                        <p className="text-muted-foreground">
-                            No worries, we'll send you reset instructions.
+                    <div className="text-center space-y-4">
+                        <div className="w-20 h-20 rounded-2xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mx-auto">
+                            <UserCog className="w-10 h-10 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight">Need to reset your password?</h1>
+                        <p className="text-muted-foreground leading-relaxed">
+                            For security, password resets are managed by your <strong>Company Administrator</strong>.
                         </p>
                     </div>
 
-                    {!submitted ? (
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label htmlFor="email" className="text-sm font-medium leading-none">Email address</label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="name@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                    disabled={loading}
-                                    className="bg-secondary/30"
-                                />
-                            </div>
+                    <div className="glass-card rounded-2xl p-6 space-y-4">
+                        <h2 className="font-semibold text-foreground text-sm">How to reset your password:</h2>
+                        <ol className="space-y-3 text-sm text-muted-foreground">
+                            <li className="flex items-start gap-3">
+                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center mt-0.5">1</span>
+                                <span>Contact your <strong className="text-foreground">Company Administrator</strong></span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center mt-0.5">2</span>
+                                <span>They will reset your password from the <strong className="text-foreground">Staff Management</strong> panel</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center mt-0.5">3</span>
+                                <span>Log in with your <strong className="text-foreground">new password</strong> and you&apos;re all set!</span>
+                            </li>
+                        </ol>
+                    </div>
 
-                            <Button type="submit" className="w-full h-11" disabled={loading} size="lg">
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Sending link...
-                                    </>
-                                ) : (
-                                    'Send Reset Link'
-                                )}
-                            </Button>
-                        </form>
-                    ) : (
-                        <div className="space-y-6 animate-fade-in">
-                            <div className="p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-lg text-sm">
-                                If an account exists for <strong>{email}</strong>, you will receive a password reset link shortly.
-                                <br /><br />
-                                (Check the server console for the link in dev mode!)
-                            </div>
-                            <Button
-                                variant="outline"
-                                className="w-full h-11"
-                                onClick={() => setSubmitted(false)}
-                            >
-                                Try another email
-                            </Button>
-                        </div>
-                    )}
-
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">
-                                Or
-                            </span>
-                        </div>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-xl text-sm">
+                        <strong>Don&apos;t know your admin?</strong> Check with your team lead or HR department for help.
                     </div>
 
                     <div className="text-center">

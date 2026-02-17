@@ -3,11 +3,14 @@ import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 /**
- * GET: Fetch all staff
+ * GET: Fetch all staff (scoped to company_id from middleware)
  */
-export async function GET() {
+export async function GET(req: Request) {
     try {
+        const companyId = req.headers.get('x-company-id')
+
         const staffList = await prisma.staff.findMany({
+            where: companyId ? { company_id: Number(companyId) } : undefined,
             orderBy: { staff_id: 'desc' }
         })
 
@@ -22,10 +25,11 @@ export async function GET() {
 }
 
 /**
- * POST: Create new staff
+ * POST: Create new staff (with company_id from middleware)
  */
 export async function POST(req: Request) {
     try {
+        const companyId = req.headers.get('x-company-id')
         const { name, mobileNo, email, remarks } = await req.json()
 
         if (!name) {
@@ -35,13 +39,14 @@ export async function POST(req: Request) {
             )
         }
 
-        // 1. Create Staff Entry
+        // 1. Create Staff Entry (with company_id)
         const staff = await prisma.staff.create({
             data: {
                 staff_name: name,
                 mobile_no: mobileNo,
                 email,
-                remarks
+                remarks,
+                company_id: companyId ? Number(companyId) : null
             }
         })
 
@@ -53,7 +58,8 @@ export async function POST(req: Request) {
                     name,
                     email,
                     password: hashedPassword,
-                    role: 'STAFF' // Default role
+                    role: 'MEMBER',
+                    company_id: companyId ? Number(companyId) : null
                 }
             }).catch(e => console.error('Failed to create user login:', e))
         }
@@ -72,7 +78,7 @@ export async function POST(req: Request) {
 }
 
 /**
- * DELETE: Remove staff (Caution: Cascades if not careful, though schema says Cascade on Member)
+ * DELETE: Remove staff
  */
 export async function DELETE(req: Request) {
     try {
@@ -88,7 +94,6 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ message: 'Staff deleted successfully' })
     } catch (error) {
         console.error(error)
-        // Likely foreign key constraint if they are in a meeting
         return NextResponse.json({ message: 'Cannot delete staff associated with meetings.' }, { status: 400 })
     }
 }

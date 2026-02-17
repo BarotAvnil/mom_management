@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Users, UserCheck, UserX, Percent } from 'lucide-react'
+import { Users, UserCheck, UserX, TrendingUp } from 'lucide-react'
 
 interface AttendanceStatsProps {
     total: number
@@ -11,113 +11,59 @@ interface AttendanceStatsProps {
 
 export function AttendanceStats({ total, present, absent }: AttendanceStatsProps) {
     const rate = total > 0 ? Math.round((present / total) * 100) : 0
-
-    // Circle progress calculation
-    const radius = 30
-    const circumference = 2 * Math.PI * radius
-    const offset = circumference - (rate / 100) * circumference
+    const circumference = 2 * Math.PI * 36
+    const strokeDashoffset = circumference - (rate / 100) * circumference
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {/* Rate Card */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-card border border-border p-4 rounded-xl flex items-center gap-4 shadow-sm"
-            >
-                <div className="relative w-16 h-16 flex items-center justify-center">
-                    <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                            cx="32"
-                            cy="32"
-                            r={radius}
-                            stroke="currentColor"
-                            strokeWidth="6"
-                            fill="transparent"
-                            className="text-secondary"
-                        />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in">
+            {/* Circular Progress */}
+            <div className="glass-card rounded-2xl p-6 flex flex-col items-center justify-center">
+                <div className="relative w-24 h-24">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
+                        <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="5" fill="none" className="text-slate-100" />
                         <motion.circle
-                            initial={{ strokeDashoffset: circumference }}
-                            animate={{ strokeDashoffset: offset }}
-                            transition={{ duration: 1, ease: 'easeOut' }}
-                            cx="32"
-                            cy="32"
-                            r={radius}
+                            cx="40" cy="40" r="36"
                             stroke="currentColor"
-                            strokeWidth="6"
-                            fill="transparent"
-                            strokeDasharray={circumference}
+                            strokeWidth="5"
+                            fill="none"
+                            className="text-indigo-500"
                             strokeLinecap="round"
-                            className="text-emerald-500"
+                            strokeDasharray={circumference}
+                            initial={{ strokeDashoffset: circumference }}
+                            animate={{ strokeDashoffset }}
+                            transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-sm font-bold text-foreground">{rate}%</span>
+                        <span className="text-2xl font-bold text-foreground">{rate}%</span>
                     </div>
                 </div>
-                <div>
-                    <span className="text-muted-foreground text-xs uppercase font-bold tracking-wider">Attendance Rate</span>
-                    <p className="text-sm text-foreground">Based on {total} invited</p>
-                </div>
-            </motion.div>
+                <p className="text-xs font-semibold text-muted-foreground mt-3 uppercase tracking-wider">Attendance Rate</p>
+            </div>
 
-            {/* Total */}
-            <StatCard
-                label="Total Invited"
-                value={total}
-                icon={<Users className="w-5 h-5 text-indigo-500" />}
-                className="bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/20"
-                delay={0.1}
-            />
-
-            {/* Present */}
-            <StatCard
-                label="Present"
-                value={present}
-                icon={<UserCheck className="w-5 h-5 text-emerald-500" />}
-                className="bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/20"
-                delay={0.2}
-            />
-
-            {/* Absent */}
-            <StatCard
-                label="Absent"
-                value={absent}
-                icon={<UserX className="w-5 h-5 text-rose-500" />}
-                className="bg-rose-50/50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-900/20"
-                delay={0.3}
-            />
+            {/* Stat Cards */}
+            <StatItem icon={<Users className="w-5 h-5 text-indigo-600" />} iconBg="bg-indigo-50" label="Total Members" value={total} delay={0.1} />
+            <StatItem icon={<UserCheck className="w-5 h-5 text-emerald-600" />} iconBg="bg-emerald-50" label="Present" value={present} delay={0.2} />
+            <StatItem icon={<UserX className="w-5 h-5 text-red-500" />} iconBg="bg-red-50" label="Absent" value={absent} delay={0.3} />
         </div>
     )
 }
 
-function StatCard({ label, value, icon, className, delay = 0 }: { label: string, value: number, icon: React.ReactNode, className?: string, delay?: number }) {
+function StatItem({ icon, iconBg, label, value, delay }: { icon: React.ReactNode, iconBg: string, label: string, value: number, delay: number }) {
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay, duration: 0.3 }}
-            className={`p-4 rounded-xl border flex flex-col justify-between shadow-sm ${className}`}
+            className="glass-card rounded-2xl p-6 flex items-center gap-4"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay }}
         >
-            <div className="flex justify-between items-start mb-2">
-                <span className="text-muted-foreground text-xs uppercase font-bold tracking-wider">{label}</span>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconBg}`}>
                 {icon}
             </div>
-            <div className="text-3xl font-bold text-foreground tracking-tight">
-                <Counter value={value} />
+            <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{value}</p>
             </div>
         </motion.div>
-    )
-}
-
-function Counter({ value }: { value: number }) {
-    return (
-        <motion.span
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            key={value}
-        >
-            {value}
-        </motion.span>
     )
 }

@@ -2,6 +2,40 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
 /**
+ * PUT: Update a staff member
+ */
+export async function PUT(
+    req: Request,
+    context: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await context.params
+        const staffId = Number(id)
+
+        if (Number.isNaN(staffId)) {
+            return NextResponse.json({ message: 'Invalid ID' }, { status: 400 })
+        }
+
+        const { name, email, mobileNo, remarks } = await req.json()
+
+        const updated = await prisma.staff.update({
+            where: { staff_id: staffId },
+            data: {
+                ...(name && { staff_name: name }),
+                ...(email !== undefined && { email }),
+                ...(mobileNo !== undefined && { mobile_no: mobileNo }),
+                ...(remarks !== undefined && { remarks }),
+            }
+        })
+
+        return NextResponse.json({ message: 'Staff updated successfully', data: updated })
+    } catch (error) {
+        console.error('Failed to update staff:', error)
+        return NextResponse.json({ message: 'Failed to update staff member' }, { status: 500 })
+    }
+}
+
+/**
  * DELETE: Remove a staff member globally
  * Only accessible by ADMIN
  */
@@ -13,18 +47,10 @@ export async function DELETE(
         const { id } = await context.params
         const staffId = Number(id)
 
-        // 1. Auth Check
-        const role = req.headers.get('x-user-role')
-        if (role !== 'ADMIN') {
-            return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
-        }
-
-        // 2. Validate ID
         if (Number.isNaN(staffId)) {
             return NextResponse.json({ message: 'Invalid ID' }, { status: 400 })
         }
 
-        // 3. Delete Staff
         // Cascade delete ensures meeting_member records are removed
         await prisma.staff.delete({
             where: { staff_id: staffId }
@@ -33,7 +59,6 @@ export async function DELETE(
         return NextResponse.json({ message: 'Staff member deleted successfully' })
     } catch (error) {
         console.error('Failed to delete staff:', error)
-        // Check for specific Prisma errors (like record not found)
         return NextResponse.json({ message: 'Failed to delete staff member' }, { status: 500 })
     }
 }

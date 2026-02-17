@@ -20,7 +20,7 @@ export async function GET(
     const userId = req.headers.get('x-user-id')
     const role = req.headers.get('x-user-role')
 
-    if (role !== 'ADMIN') {
+    if (role !== 'ADMIN' && role !== 'COMPANY_ADMIN') {
       const meeting = await prisma.meetings.findUnique({
         where: { meeting_id: meetingIdNumber },
         include: { meeting_member: true }

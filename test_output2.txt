@@ -1,0 +1,1625 @@
+﻿node.exe : PASS __tes
+ts__/auth/login.test.
+ts
+At C:\Program Files\n
+odejs\npx.ps1:29 
+char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (PASS __   
+ tests__/auth/log    
+in.test.ts:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+  POST 
+/api/auth/login
+    ΓêÜ returns 400 
+when email or 
+password is missing 
+(18 ms)
+    ΓêÜ returns 401 
+when user does not 
+exist (3 ms)
+    ΓêÜ returns 401 
+when password is 
+wrong (4 ms)
+    ΓêÜ returns 403 
+when company is 
+suspended (2 ms)
+    ΓêÜ returns 403 
+when company is 
+soft-deleted (3 ms)
+    ΓêÜ allows 
+SUPER_ADMIN login 
+even without active 
+company (9 ms)
+    ΓêÜ returns 
+token and user data 
+on successful login 
+(4 ms)
+    ΓêÜ includes 
+company_id in JWT 
+payload (3 ms)
+
+PASS __tests__/meetin
+gs/meetings.test.ts
+  Meetings API
+    GET /api/meetings
+      ΓêÜ returns 
+empty array for 
+users without 
+company_id (18 ms)
+      ΓêÜ returns 
+meetings scoped to 
+company_id for 
+COMPANY_ADMIN (9 ms)
+      ΓêÜ filters by 
+created_by/meeting_me
+mber for MEMBER role 
+(3 ms)
+    POST 
+/api/meetings
+      ΓêÜ returns 
+403 for MEMBER role 
+(5 ms)
+      ΓêÜ returns 
+400 when required 
+fields are missing 
+(2 ms)
+      ΓêÜ creates 
+meeting via 
+transaction with 
+company_id from JWT 
+(6 ms)
+      ΓêÜ sets 
+company_id from 
+header, ignoring 
+body-provided 
+company_id (2 ms)
+
+PASS __tests__/staff/
+staff-detail.test.ts
+  Staff [id] API
+    PUT 
+/api/staff/:id
+      ΓêÜ returns 
+400 for non-numeric 
+ID (17 ms)
+      ΓêÜ updates 
+staff name (7 ms)
+      ΓêÜ updates 
+email, mobile, and 
+remarks together (3 
+ms)
+      ΓêÜ only 
+includes defined 
+fields in update (3 
+ms)
+      ΓêÜ returns 
+500 on database 
+error (4 ms)
+    DELETE 
+/api/staff/:id
+      ΓêÜ returns 
+400 for non-numeric 
+ID (2 ms)
+      ΓêÜ deletes 
+staff by ID 
+(cascade) (5 ms)
+      ΓêÜ returns 
+500 when staff not 
+found (3 ms)
+
+PASS __tests__/securi
+ty/enterprise-hardeni
+ng.test.ts
+  Enterprise 
+Hardening ΓÇö Token 
+Security
+    Token tampering 
+detection
+      ΓêÜ rejects 
+token signed with 
+wrong secret (19 ms)
+      ΓêÜ rejects 
+completely invalid 
+Base64 token (4 ms)
+      ΓêÜ rejects 
+token with no 
+payload segment (2 
+ms)
+      ΓêÜ rejects 
+token with corrupted 
+payload (2 ms)
+    Expired token 
+handling
+      ΓêÜ middleware 
+still processes 
+expired tokens 
+(decode-only, no 
+verify) (5 ms)
+    Role escalation 
+attempts
+      ΓêÜ MEMBER 
+token cannot access 
+SUPER_ADMIN routes 
+even if manually 
+crafted (3 ms)
+      ΓêÜ 
+COMPANY_ADMIN cannot 
+access SUPER_ADMIN 
+panel (2 ms)
+      ΓêÜ crafted 
+token with unknown 
+role is still 
+processed 
+(middleware decode) 
+(3 ms)
+      ΓêÜ crafted 
+token with 
+SUPER_ADMIN role but 
+company_id cannot 
+access tenant routes 
+(4 ms)
+    SUPER_ADMIN 
+isolation boundaries
+      ΓêÜ 
+SUPER_ADMIN blocked 
+from tenant route: 
+/api/meetings (3 ms)
+      ΓêÜ 
+SUPER_ADMIN blocked 
+from tenant route: 
+/api/staff (2 ms)
+      ΓêÜ 
+SUPER_ADMIN blocked 
+from tenant route: 
+/api/meeting-type (2 
+ms)
+      ΓêÜ 
+SUPER_ADMIN blocked 
+from tenant route: 
+/api/action-items (2 
+ms)
+      ΓêÜ 
+SUPER_ADMIN blocked 
+from tenant route: 
+/api/dashboard/stats 
+(2 ms)
+      ΓêÜ 
+SUPER_ADMIN blocked 
+from tenant route: 
+/api/attendance/1 (2 
+ms)
+      ΓêÜ 
+SUPER_ADMIN allowed 
+on: /api/super-admin/
+stats (3 ms)
+      ΓêÜ 
+SUPER_ADMIN allowed 
+on: /api/super-admin/
+companies (2 ms)
+      ΓêÜ 
+SUPER_ADMIN allowed 
+on: /api/super-admin/
+registrations (4 ms)
+      ΓêÜ 
+SUPER_ADMIN allowed 
+on: /api/auth/login 
+(2 ms)
+      ΓêÜ 
+SUPER_ADMIN allowed 
+on: /api/profile (2 
+ms)
+    company_id null 
+enforcement for 
+tenant routes
+      ΓêÜ 
+COMPANY_ADMIN with 
+null company_id is 
+blocked from tenant 
+APIs (2 ms)
+      ΓêÜ MEMBER 
+with undefined 
+company_id is 
+blocked (3 ms)
+
+PASS __tests__/securi
+ty/tenant-isolation.t
+est.ts
+  Multi-Tenant 
+Isolation Security
+    All GET routes 
+use company_id from 
+JWT header, NOT 
+request
+      ΓêÜ Staff: 
+Company 2 admin 
+query uses 
+company_id=2, not 1 
+(20 ms)
+      ΓêÜ Meetings: 
+Company 2 cannot see 
+Company 1 meetings 
+(3 ms)
+      ΓêÜ Meeting 
+Types: Company 2 
+only sees its own 
+types (2 ms)
+      ΓêÜ Action 
+Items: Company 2 
+only sees its own 
+items (2 ms)
+      ΓêÜ Dashboard: 
+Company 2 stats 
+scoped correctly (4 
+ms)
+    Backend ignores 
+request-body 
+injected company_id
+      ΓêÜ POST 
+Staff: injected 
+company_id in body 
+is ignored (4 ms)
+      ΓêÜ POST 
+Meeting Type: 
+injected company_id 
+in body is ignored 
+(2 ms)
+      ΓêÜ POST 
+Action Item: 
+injected company_id 
+in body is ignored 
+(2 ms)
+      ΓêÜ POST 
+Meeting: injected 
+company_id in body 
+is ignored 
+(transaction) (4 ms)
+    IDOR Protection 
+via company-scoped 
+queries
+      ΓêÜ Querying 
+action items with 
+foreign meetingId 
+still scoped by 
+company_id (5 ms)
+    Horizontal 
+privilege escalation 
+prevention
+      ΓêÜ MEMBER 
+from Company 2 
+cannot query Company 
+1 staff (2 ms)
+      ΓêÜ MEMBER 
+from Company 1 data 
+is isolated from 
+Company 2 dashboard 
+(2 ms)
+
+PASS __tests__/dashbo
+ard/stats.test.ts
+  GET 
+/api/dashboard/stats
+    ΓêÜ returns 
+empty stats when no 
+company_id 
+(SUPER_ADMIN) (18 ms)
+    ΓêÜ returns 
+stats scoped to 
+company_id for 
+COMPANY_ADMIN (8 ms)
+    ΓêÜ applies 
+role-based filtering 
+for MEMBER (4 ms)
+
+PASS __tests__/meetin
+gs/meeting-detail.tes
+t.ts
+  Meetings 
+[meetingId] API
+    GET /api/meetings
+/:meetingId
+      ΓêÜ returns 
+400 for non-numeric 
+ID (18 ms)
+      ΓêÜ returns 
+404 when meeting not 
+found (2 ms)
+      ΓêÜ allows 
+COMPANY_ADMIN to 
+view any meeting (7 
+ms)
+      ΓêÜ allows 
+creator to view 
+their meeting (2 ms)
+      ΓêÜ allows 
+meeting admin to 
+view the meeting (2 
+ms)
+      ΓêÜ allows 
+invited member to 
+view the meeting (2 
+ms)
+      ΓêÜ returns 
+403 when MEMBER is 
+not creator, admin, 
+or invited (1 ms)
+    PUT /api/meetings
+/:meetingId
+      ΓêÜ returns 
+404 when meeting not 
+found (2 ms)
+      ΓêÜ returns 
+403 when MEMBER is 
+not creator or admin 
+(2 ms)
+      ΓêÜ allows 
+creator to update 
+meeting via 
+transaction (3 ms)
+      ΓêÜ handles 
+cancellation data 
+correctly (2 ms)
+      ΓêÜ 
+COMPANY_ADMIN can 
+update any meeting 
+(sys admin bypass) 
+(2 ms)
+    DELETE /api/meeti
+ngs/:meetingId
+      ΓêÜ deletes 
+meeting by ID (3 ms)
+      ΓêÜ returns 
+500 when delete 
+fails (1 ms)
+
+PASS __tests__/regist
+ration/registration.t
+est.ts
+  POST 
+/api/registration
+    ΓêÜ returns 400 
+when required fields 
+are missing (16 ms)
+    ΓêÜ returns 409 
+when registration 
+email already exists 
+(3 ms)
+    ΓêÜ returns 409 
+when email is 
+already a user (3 ms)
+    ΓêÜ hashes 
+password and creates 
+request on success 
+(4 ms)
+
+PASS __tests__/action
+-items/action-item-de
+tail.test.ts
+  Action Items [id] 
+API
+    PUT 
+/api/action-items/:id
+      ΓêÜ updates 
+isCompleted field 
+(19 ms)
+      ΓêÜ updates 
+assignedTo field 
+(null clears 
+assignment) (2 ms)
+      ΓêÜ updates 
+description and 
+dueDate together (2 
+ms)
+      ΓêÜ always 
+includes updated_at 
+in data (2 ms)
+      ΓêÜ includes 
+assignee in response 
+(1 ms)
+      ΓêÜ returns 
+500 on database 
+error (2 ms)
+    DELETE 
+/api/action-items/:id
+      ΓêÜ deletes 
+action item by ID (4 
+ms)
+      ΓêÜ returns 
+500 when item does 
+not exist (2 ms)
+
+PASS __tests__/integr
+ation/lifecycle.test.
+ts
+  Integration: Full 
+Company Lifecycle
+    ΓêÜ skipped ΓÇö 
+set 
+INTEGRATION_TESTS=1 
+to run (1 ms)
+
+PASS __tests__/staff/
+staff.test.ts
+  Staff API
+    GET /api/staff
+      ΓêÜ fetches 
+staff scoped to 
+company_id from 
+middleware (13 ms)
+      ΓêÜ enforces 
+company_id ΓÇö 
+Company 2 admin 
+cannot see Company 1 
+staff (1 ms)
+    POST /api/staff
+      ΓêÜ returns 
+400 when staff name 
+is missing (1 ms)
+      ΓêÜ creates 
+staff with 
+company_id from JWT, 
+not request body (2 
+ms)
+      ΓêÜ creates a 
+linked user login 
+when email is 
+provided (1 ms)
+    DELETE /api/staff
+      ΓêÜ returns 
+400 when id is 
+missing (1 ms)
+      ΓêÜ deletes 
+staff by id (1 ms)
+
+PASS __tests__/profil
+e/profile.test.ts
+  Profile API
+    GET /api/profile
+      ΓêÜ returns 
+401 when x-user-id 
+is missing (11 ms)
+      ΓêÜ returns 
+404 when user not 
+found (2 ms)
+      ΓêÜ returns 
+user profile with 
+stats for tenant 
+users (3 ms)
+    PUT /api/profile
+      ΓêÜ returns 
+401 when x-user-id 
+is missing (1 ms)
+      ΓêÜ hashes 
+password when 
+updating (3 ms)
+
+PASS __tests__/meetin
+g-type/meeting-type.t
+est.ts
+  Meeting Type API
+    GET 
+/api/meeting-type
+      ΓêÜ returns 
+empty when no 
+company_id (10 ms)
+      ΓêÜ fetches 
+types scoped to 
+company_id (3 ms)
+    POST 
+/api/meeting-type
+      ΓêÜ returns 
+400 when name is 
+missing (1 ms)
+      ΓêÜ creates 
+meeting type with 
+company_id from JWT 
+(2 ms)
+    PUT 
+/api/meeting-type
+      ΓêÜ updates 
+meeting type by id 
+(1 ms)
+    DELETE 
+/api/meeting-type
+      ΓêÜ returns 
+400 when id is 
+missing (1 ms)
+      ΓêÜ deletes 
+meeting type by id 
+(3 ms)
+
+PASS __tests__/auth/r
+egister.test.ts
+  POST 
+/api/auth/register
+    ΓêÜ returns 400 
+when required fields 
+are missing (10 ms)
+    ΓêÜ returns 409 
+when email already 
+exists (1 ms)
+    ΓêÜ hashes 
+password before 
+storing (4 ms)
+    ΓêÜ returns user 
+data and token on 
+success (2 ms)
+
+PASS __tests__/middle
+ware/middleware.test.
+ts
+  Middleware
+    Public routes
+      ΓêÜ allows 
+/login without auth 
+(8 ms)
+      ΓêÜ allows 
+/register-company 
+without auth (1 ms)
+      ΓêÜ allows 
+/forgot-password 
+without auth (1 ms)
+      ΓêÜ allows 
+/reset-password 
+without auth (1 ms)
+      ΓêÜ allows 
+/api/auth/login 
+without auth (1 ms)
+      ΓêÜ allows 
+/api/registration 
+without auth
+      ΓêÜ allows 
+root page /
+    Missing token
+      ΓêÜ returns 
+401 for API routes 
+without token (2 ms)
+      ΓêÜ redirects 
+page routes to 
+/login without token 
+(1 ms)
+    Invalid token
+      ΓêÜ returns 
+401 for malformed 
+token on API routes 
+(1 ms)
+      ΓêÜ redirects 
+to login for 
+malformed token on 
+page routes (1 ms)
+    SUPER_ADMIN 
+route protection
+      ΓêÜ blocks 
+COMPANY_ADMIN from 
+/super-admin routes 
+(5 ms)
+      ΓêÜ blocks 
+MEMBER from 
+/api/super-admin 
+routes (3 ms)
+      ΓêÜ allows 
+SUPER_ADMIN to 
+access /super-admin 
+routes (2 ms)
+    SUPER_ADMIN 
+cannot access tenant 
+routes
+      ΓêÜ blocks 
+SUPER_ADMIN from 
+/api/meetings (2 ms)
+      ΓêÜ blocks 
+SUPER_ADMIN from 
+/api/staff (2 ms)
+      ΓêÜ blocks 
+SUPER_ADMIN from 
+/dashboard page 
+(redirects to 
+/super-admin) (2 ms)
+      ΓêÜ allows 
+SUPER_ADMIN to 
+access /api/auth 
+routes (1 ms)
+      ΓêÜ allows 
+SUPER_ADMIN to 
+access /api/profile 
+(1 ms)
+    company_id 
+enforcement
+      ΓêÜ blocks 
+tenant API access 
+when user has no 
+company_id (1 ms)
+      ΓêÜ allows 
+tenant API access 
+when user has 
+company_id (1 ms)
+    Header forwarding
+      ΓêÜ sets 
+x-user-id, 
+x-user-role, 
+x-company-id headers 
+(1 ms)
+      ΓêÜ sets empty 
+x-company-id for 
+SUPER_ADMIN (1 ms)
+    Authorization 
+header
+      ΓêÜ accepts 
+token from Bearer 
+header (1 ms)
+
+  console.error
+    Registration action error: Error: Company "New Corp" already exists
+        at C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\app\api\super-admin\registrations\route.ts:95:23
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+    [0m [90m 157 |[39m         })
+     [90m 158 |[39m     } [36mcatch[39m (error[33m:[39m any) {
+    [31m[1m>[22m[39m[90m 159 |[39m         console[33m.[39merror([32m'Registration action error:'[39m[33m,[39m error)
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 160 |[39m         [36mreturn[39m [33mNextResponse[39m[33m.[39mjson(
+     [90m 161 |[39m             { message[33m:[39m error[33m.[39mmessage [33m||[39m [32m'Failed to process registration'[39m }[33m,[39m
+     [90m 162 |[39m             { status[33m:[39m [35m500[39m }[0m
+
+      at PUT (app/api/super-admin/registrations/route.ts:159:17)
+      at Object.<anonymous> (__tests__/super-admin/super-admin.test.ts:229:25)
+
+  console.error
+    Registration action error: Error: User with email "jane@newcorp.com" already exists
+        at C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\app\api\super-admin\registrations\route.ts:103:23
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at PUT (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\app\api\super-admin\registrations\route.ts:89:24)
+        at Object.<anonymous> (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\__tests__\super-admin\super-admin.test.ts:254:25)
+
+    [0m [90m 157 |[39m         })
+     [90m 158 |[39m     } [36mcatch[39m (error[33m:[39m any) {
+    [31m[1m>[22m[39m[90m 159 |[39m         console[33m.[39merror([32m'Registration action error:'[39m[33m,[39m error)
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 160 |[39m         [36mreturn[39m [33mNextResponse[39m[33m.[39mjson(
+     [90m 161 |[39m             { message[33m:[39m error[33m.[39mmessage [33m||[39m [32m'Failed to process registration'[39m }[33m,[39m
+     [90m 162 |[39m             { status[33m:[39m [35m500[39m }[0m
+
+      at PUT (app/api/super-admin/registrations/route.ts:159:17)
+      at Object.<anonymous> (__tests__/super-admin/super-admin.test.ts:254:25)
+
+PASS __tests__/super-
+admin/super-admin.tes
+t.ts
+  Super Admin API
+    GET /api/super-ad
+min/companies
+      ΓêÜ returns 
+all active companies 
+with counts (11 ms)
+    PUT /api/super-ad
+min/companies
+      ΓêÜ returns 
+400 for invalid 
+status (3 ms)
+      ΓêÜ suspends 
+company and creates 
+audit log (2 ms)
+    GET /api/super-ad
+min/registrations
+      ΓêÜ fetches 
+all registrations (1 
+ms)
+      ΓêÜ filters by 
+status query param 
+(4 ms)
+    PUT /api/super-ad
+min/registrations 
+ΓÇö Reject
+      ΓêÜ returns 
+400 for invalid 
+action (1 ms)
+      ΓêÜ returns 
+404 when request not 
+found (2 ms)
+      ΓêÜ rejects 
+already-processed 
+request (1 ms)
+      ΓêÜ rejects 
+request and creates 
+audit log (2 ms)
+    PUT /api/super-ad
+min/registrations 
+ΓÇö Approve 
+(Transaction)
+      ΓêÜ approves 
+request via 
+transaction: creates 
+company, user, audit 
+log (3 ms)
+      ΓêÜ rolls back 
+transaction when 
+company name already 
+exists (52 ms)
+      ΓêÜ rolls back 
+transaction when 
+email already exists 
+as user (8 ms)
+    GET /api/super-ad
+min/stats
+      ΓêÜ returns 
+aggregated platform 
+statistics (1 ms)
+
+PASS __tests__/action
+-items/action-items.t
+est.ts
+  Action Items API
+    GET 
+/api/action-items
+      ΓêÜ fetches 
+action items scoped 
+to company_id (10 ms)
+      ΓêÜ filters by 
+staffId when 
+provided (1 ms)
+    POST 
+/api/action-items
+      ΓêÜ returns 
+400 when description 
+or meetingId is 
+missing (1 ms)
+      ΓêÜ creates 
+action item with 
+company_id from JWT 
+(1 ms)
+
+PASS __tests__/securi
+ty/audit-logging.test
+.ts
+  Audit & Logging 
+Validation
+    Company status 
+change audit trails
+      ΓêÜ creates 
+audit log with 
+SUSPEND_COMPANY 
+action (10 ms)
+      ΓêÜ creates 
+audit log with 
+ACTIVATE_COMPANY 
+action (1 ms)
+    Registration 
+rejection audit trail
+      ΓêÜ logs 
+REJECT_REGISTRATION 
+with reason in 
+metadata (1 ms)
+    Registration 
+approval audit trail
+      ΓêÜ creates 
+audit log inside 
+transaction on 
+approval (1 ms)
+    Audit log cannot 
+be bypassed
+      ΓêÜ audit 
+creation is always 
+called even when 
+main operation 
+succeeds (1 ms)
+
+  console.error
+    Super admin password reset error: Error: DB down
+        at Object.<anonymous> (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\__tests__\super-admin\super-admin-reset-password.test.ts:102:68)
+        at Promise.finally.completed (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:1557:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:1497:10)
+        at _callCircusTest (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:1007:40)
+        at _runTest (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:947:3)
+        at C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:849:7
+        at _runTestsForDescribeBlock (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:862:11)
+        at _runTestsForDescribeBlock (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:857:11)
+        at run (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:761:3)
+        at runAndTransformResultsToJestFormat (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:1918:21)
+        at jestAdapter (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\runner.js:101:19)
+        at runTestInternal (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-runner\build\testWorker.js:275:16)
+        at runTest (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-runner\build\testWorker.js:343:7)
+        at Object.worker (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-runner\build\testWorker.js:497:12)
+
+    [0m [90m 79 |[39m         })
+     [90m 80 |[39m     } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 81 |[39m         console[33m.[39merror([32m'Super admin password reset error:'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 82 |[39m         [36mreturn[39m [33mNextResponse[39m[33m.[39mjson({ message[33m:[39m [32m'Failed to reset password'[39m }[33m,[39m { status[33m:[39m [35m500[39m })
+     [90m 83 |[39m     }
+     [90m 84 |[39m }[0m
+
+      at POST (app/api/super-admin/reset-password/route.ts:81:17)
+      at Object.<anonymous> (__tests__/super-admin/super-admin-reset-password.test.ts:108:21)
+
+FAIL __tests__/super-
+admin/super-admin-res
+et-password.test.ts
+  POST /api/super-adm
+in/reset-password
+    ΓêÜ returns 403 
+for non-SUPER_ADMIN 
+(9 ms)
+    ├ù returns 400 
+when userId missing 
+(2 ms)
+    ├ù returns 400 
+for weak password (2 
+ms)
+    ΓêÜ returns 404 
+when user not found 
+(1 ms)
+    ├ù prevents 
+resetting another 
+SUPER_ADMIN password 
+(1 ms)
+    ├ù resets 
+password 
+successfully with 
+audit log (258 ms)
+    ΓêÜ returns 500 
+on unexpected error 
+(28 ms)
+
+  ΓùÅ POST /api/super
+-admin/reset-password
+ ΓÇ║ returns 400 
+when userId missing
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 26 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 27 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m400[3
+9m)
+    [31m[1m>[22m[
+39m[90m 28 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+User ID'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 29 |[39m 
+    })
+     [90m 30 |[39m
+     [90m 31 |[39m 
+    it([32m'returns 
+400 for weak password
+'[39m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/super-admin/
+super-admin-reset-pas
+sword.test.ts:28:30)
+
+  ΓùÅ POST /api/super
+-admin/reset-password
+ ΓÇ║ returns 400 for 
+weak password
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 37 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 38 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m400[3
+9m)
+    [31m[1m>[22m[
+39m[90m 39 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+8 characters'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 40 |[39m 
+    })
+     [90m 41 |[39m
+     [90m 42 |[39m 
+    it([32m'returns 
+404 when user not fou
+nd'[39m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/super-admin/
+super-admin-reset-pas
+sword.test.ts:39:30)
+
+  ΓùÅ POST /api/super
+-admin/reset-password
+ ΓÇ║ prevents 
+resetting another 
+SUPER_ADMIN password
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 64 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 65 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m403[3
+9m)
+    [31m[1m>[22m[
+39m[90m 66 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+Super Admin'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 67 |[39m 
+    })
+     [90m 68 |[39m
+     [90m 69 |[39m 
+    it([32m'resets 
+password 
+successfully with 
+audit 
+log'[39m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/super-admin/
+super-admin-reset-pas
+sword.test.ts:66:30)
+
+  ΓùÅ POST /api/super
+-admin/reset-password
+ ΓÇ║ resets password 
+successfully with 
+audit log
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 81 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 82 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m200[3
+9m)
+    [31m[1m>[22m[
+39m[90m 83 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+Alice'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 84 |[39m
+     [90m 85 |[39m 
+        [90m// 
+Verify password was 
+hashed[39m
+     [90m 86 |[39m 
+        
+[36mconst[39m 
+updateCall 
+[33m=[39m (prisma[
+33m.[39musers[33m.
+[39mupdate 
+[36mas[39m jest[33
+m.[39m[33mMock[39m
+)[33m.[39mmock[33m
+.[39mcalls[[35m0[3
+9m][[35m0[39m][0m
+
+      at 
+Object.<anonymous> (_
+_tests__/super-admin/
+super-admin-reset-pas
+sword.test.ts:83:30)
+
+  console.error
+    Staff password reset error: Error: DB down
+        at Object.<anonymous> (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\__tests__\staff\staff-reset-password.test.ts:133:67)
+        at Promise.finally.completed (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:1557:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:1497:10)
+        at _callCircusTest (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:1007:40)
+        at _runTest (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:947:3)
+        at C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:849:7
+        at _runTestsForDescribeBlock (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:862:11)
+        at _runTestsForDescribeBlock (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:857:11)
+        at run (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:761:3)
+        at runAndTransformResultsToJestFormat (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\jestAdapterInit.js:1918:21)
+        at jestAdapter (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-circus\build\runner.js:101:19)
+        at runTestInternal (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-runner\build\testWorker.js:275:16)
+        at runTest (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-runner\build\testWorker.js:343:7)
+        at Object.worker (C:\Users\avnil\OneDrive\Desktop\AWT Project\mom_management\node_modules\jest-runner\build\testWorker.js:497:12)
+
+    [0m [90m 108 |[39m         })
+     [90m 109 |[39m     } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 110 |[39m         console[33m.[39merror([32m'Staff password reset error:'[39m[33m,[39m error)
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 111 |[39m         [36mreturn[39m [33mNextResponse[39m[33m.[39mjson({ message[33m:[39m [32m'Failed to reset password'[39m }[33m,[39m { status[33m:[39m [35m500[39m })
+     [90m 112 |[39m     }
+     [90m 113 |[39m }[0m
+
+      at POST (app/api/staff/[id]/reset-password/route.ts:110:17)
+      at Object.<anonymous> (__tests__/staff/staff-reset-password.test.ts:139:21)
+
+FAIL __tests__/staff/
+staff-reset-password.
+test.ts
+  POST /api/staff/:id
+/reset-password
+    ├ù returns 400 
+for NaN staff ID (10 
+ms)
+    ├ù returns 403 
+for MEMBER role (1 
+ms)
+    ├ù returns 400 
+for weak password 
+(too short) (1 ms)
+    ├ù returns 400 
+for password without 
+uppercase (1 ms)
+    ├ù returns 400 
+for password without 
+digit (2 ms)
+    ├ù returns 404 
+when staff not in 
+company (1 ms)
+    ├ù returns 404 
+when no linked user 
+account
+    ├ù resets 
+password 
+successfully with 
+audit log (244 ms)
+    ΓêÜ returns 500 
+on unexpected error 
+(27 ms)
+
+  ΓùÅ POST /api/staff
+/:id/reset-password 
+ΓÇ║ returns 400 for 
+NaN staff ID
+
+    expect(received).
+toBe(expected) // 
+Object.is equality
+
+    Expected: 
+"Invalid staff ID"
+    Received: 
+undefined
+
+    [0m [90m 17 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 18 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m400[3
+9m)
+    [31m[1m>[22m[
+39m[90m 19 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoBe([32m'Inval
+id staff ID'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 20 |[39m 
+    })
+     [90m 21 |[39m
+     [90m 22 |[39m 
+    it([32m'returns 
+403 for MEMBER role'
+[39m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/staff/staff-
+reset-password.test.t
+s:19:30)
+
+  ΓùÅ POST /api/staff
+/:id/reset-password 
+ΓÇ║ returns 403 for 
+MEMBER role
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 28 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 29 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m403[3
+9m)
+    [31m[1m>[22m[
+39m[90m 30 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+Only Company 
+Admins'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 31 |[39m 
+    })
+     [90m 32 |[39m
+     [90m 33 |[39m 
+    it([32m'returns 
+400 for weak 
+password (too short)'
+[39m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/staff/staff-
+reset-password.test.t
+s:30:30)
+
+  ΓùÅ POST /api/staff
+/:id/reset-password 
+ΓÇ║ returns 400 for 
+weak password (too 
+short)
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 39 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 40 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m400[3
+9m)
+    [31m[1m>[22m[
+39m[90m 41 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+8 characters'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 42 |[39m 
+    })
+     [90m 43 |[39m
+     [90m 44 |[39m 
+    it([32m'returns 
+400 for password 
+without uppercase'[3
+9m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/staff/staff-
+reset-password.test.t
+s:41:30)
+
+  ΓùÅ POST /api/staff
+/:id/reset-password 
+ΓÇ║ returns 400 for 
+password without 
+uppercase
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 50 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 51 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m400[3
+9m)
+    [31m[1m>[22m[
+39m[90m 52 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+uppercase'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 53 |[39m 
+    })
+     [90m 54 |[39m
+     [90m 55 |[39m 
+    it([32m'returns 
+400 for password 
+without digit'[39m[
+33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/staff/staff-
+reset-password.test.t
+s:52:30)
+
+  ΓùÅ POST /api/staff
+/:id/reset-password 
+ΓÇ║ returns 400 for 
+password without 
+digit
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 61 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 62 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m400[3
+9m)
+    [31m[1m>[22m[
+39m[90m 63 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+digit'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 64 |[39m 
+    })
+     [90m 65 |[39m
+     [90m 66 |[39m 
+    it([32m'returns 
+404 when staff not 
+in company'[39m[33m
+,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/staff/staff-
+reset-password.test.t
+s:63:30)
+
+  ΓùÅ POST /api/staff
+/:id/reset-password 
+ΓÇ║ returns 404 when 
+staff not in company
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 74 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 75 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m404[3
+9m)
+    [31m[1m>[22m[
+39m[90m 76 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+not found'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 77 |[39m 
+    })
+     [90m 78 |[39m
+     [90m 79 |[39m 
+    it([32m'returns 
+404 when no linked 
+user account'[39m[3
+3m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/staff/staff-
+reset-password.test.t
+s:76:30)
+
+  ΓùÅ POST /api/staff
+/:id/reset-password 
+ΓÇ║ returns 404 when 
+no linked user 
+account
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 90 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 91 |[39m 
+        expect(res[3
+3m.[39mstatus)[33m.
+[39mtoBe([35m404[3
+9m)
+    [31m[1m>[22m[
+39m[90m 92 |[39m   
+      expect(body[33
+m.[39mmessage)[33m.
+[39mtoContain([32m'
+No user 
+account'[39m)
+     [90m    |[39m 
+                     
+        
+[31m[1m^[22m[39m
+     [90m 93 |[39m 
+    })
+     [90m 94 |[39m
+     [90m 95 |[39m 
+    it([32m'resets 
+password 
+successfully with 
+audit 
+log'[39m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at 
+Object.<anonymous> (_
+_tests__/staff/staff-
+reset-password.test.t
+s:92:30)
+
+  ΓùÅ POST /api/staff
+/:id/reset-password 
+ΓÇ║ resets password 
+successfully with 
+audit log
+
+    expect(received).
+toContain(expected) 
+// indexOf
+
+    Matcher error: 
+received value must 
+not be null nor 
+undefined
+
+    Received has 
+value: undefined
+
+    [0m [90m 110 
+|[39m         
+[36mconst[39m body 
+[33m=[39m 
+[36mawait[39m 
+parseResponse(res)
+     [90m 111 
+|[39m         expect
+(res[33m.[39mstatus
+)[33m.[39mtoBe([35
+m200[39m)
+    [31m[1m>[22m[
+39m[90m 112 |[39m  
+       expect(body[3
+3m.[39mmessage)[33m
+.[39mtoContain([32m
+'John'[39m)
+     [90m     
+|[39m               
+               
+[31m[1m^[22m[39m
+     [90m 113 |[39m
+     [90m 114 
+|[39m         
+[90m// Verify 
+password was 
+hashed[39m
+     [90m 115 
+|[39m         
+[36mconst[39m 
+updateCall 
+[33m=[39m (prisma[
+33m.[39musers[33m.
+[39mupdate 
+[36mas[39m jest[33
+m.[39m[33mMock[39m
+)[33m.[39mmock[33m
+.[39mcalls[[35m0[3
+9m][[35m0[39m][0m
+
+      at 
+Object.<anonymous> (_
+_tests__/staff/staff-
+reset-password.test.t
+s:112:30)
+
+Test Suites: 2 
+failed, 18 passed, 
+20 total
+Tests:       12 
+failed, 160 passed, 
+172 total
+Snapshots:   0 total
+Time:        2.659 s
+Ran all test suites.

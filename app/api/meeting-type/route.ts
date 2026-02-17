@@ -2,11 +2,21 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
 /**
- * GET: Fetch all meeting types
+ * GET: Fetch meeting types (company-scoped)
  */
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const role = req.headers.get('x-user-role')
+    const companyId = req.headers.get('x-company-id')
+
+    const where: any = {}
+    if (!companyId) {
+      return NextResponse.json({ data: [] })
+    }
+    where.company_id = Number(companyId)
+
     const meetingTypes = await prisma.meeting_type.findMany({
+      where,
       orderBy: { meeting_type_id: 'desc' }
     })
 
@@ -21,10 +31,11 @@ export async function GET() {
 }
 
 /**
- * POST: Create a new meeting type
+ * POST: Create a new meeting type (with company_id)
  */
 export async function POST(req: Request) {
   try {
+    const companyId = req.headers.get('x-company-id')
     const { meetingTypeName, remarks } = await req.json()
 
     if (!meetingTypeName) {
@@ -37,7 +48,8 @@ export async function POST(req: Request) {
     const meetingType = await prisma.meeting_type.create({
       data: {
         meeting_type_name: meetingTypeName,
-        remarks
+        remarks,
+        company_id: companyId ? Number(companyId) : null
       }
     })
 

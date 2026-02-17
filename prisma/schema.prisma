@@ -7,6 +7,144 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────
+// MULTI-TENANT CORE
+// ─────────────────────────────────────────────
+
+model companies {
+  company_id   Int       @id @default(autoincrement())
+  company_name String    @unique @db.VarChar(200)
+  domain       String?   @db.VarChar(100)
+  status       String    @default("ACTIVE") @db.VarChar(20) // ACTIVE | SUSPENDED
+  deleted_at   DateTime? @db.Timestamp(6) // Soft delete
+  created_at   DateTime  @default(now()) @db.Timestamp(6)
+  updated_at   DateTime  @default(now()) @db.Timestamp(6)
+
+  users         users[]
+  staff         staff[]
+  meetings      meetings[]
+  meeting_types meeting_type[]
+
+  @@index([status])
+}
+
+model registration_requests {
+  request_id         Int       @id @default(autoincrement())
+  company_name       String    @db.VarChar(200)
+  assistant_name     String    @db.VarChar(100)
+  assistant_email    String    @unique @db.VarChar(100)
+  assistant_password String    // bcrypt hashed
+  status             String    @default("PENDING") @db.VarChar(20) // PENDING | APPROVED | REJECTED
+  rejection_reason   String?
+  reviewed_by        Int?
+  reviewer           users?    @relation("ReviewedRequests", fields: [reviewed_by], references: [user_id], onDelete: SetNull)
+  reviewed_at        DateTime? @db.Timestamp(6)
+  created_at         DateTime  @default(now()) @db.Timestamp(6)
+
+  @@index([status])
+  @@index([assistant_email])
+}
+
+model audit_logs {
+  log_id      Int      @id @default(autoincrement())
+  company_id  Int?
+  user_id     Int?
+  action      String   @db.VarChar(100) // e.g. APPROVE_REGISTRATION, CREATE_MEETING
+  entity_type String   @db.VarChar(50)  // e.g. registration_requests, meetings
+  entity_id   Int?
+  details     String?  // JSON string of metadata
+  ip_address  String?  @db.VarChar(45)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([company_id])
+  @@index([user_id])
+  @@index([action])
+  @@index([created_at])
+}
+
+// ─────────────────────────────────────────────
+// TENANT-SCOPED MODELS
+// ─────────────────────────────────────────────
+
+model users {
+  user_id            Int      @id @default(autoincrement())
+  name               String
+  email              String   @unique @db.VarChar(100)
+  password           String
+  role               String   // SUPER_ADMIN | COMPANY_ADMIN | MEMBER
+  company_id         Int?     // null for SUPER_ADMIN
+  company            companies? @relation(fields: [company_id], references: [company_id], onDelete: SetNull)
+  created_at         DateTime @default(now())
+  reset_token        String?
+  reset_token_expiry DateTime?
+
+  meetings           meetings[]
+  managed_meetings   meetings[]              @relation("MeetingAdmin")
+  reviewed_requests  registration_requests[] @relation("ReviewedRequests")
+
+  @@unique([company_id, email])
+  @@index([company_id])
+  @@index([role])
+}
+
+model staff {
+  staff_id       Int              @id @default(autoincrement())
+  staff_name     String           @db.VarChar(100)
+  mobile_no      String?          @db.VarChar(15)
+  email          String?          @db.VarChar(100)
+  remarks        String?
+  company_id     Int?
+  company        companies?       @relation(fields: [company_id], references: [company_id], onDelete: SetNull)
+  created_at     DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at     DateTime?        @default(now()) @db.Timestamp(6)
+  meeting_member meeting_member[]
+  assigned_actions ActionItem[]
+
+  @@index([company_id])
+  @@index([company_id, email])
+}
+
+model meeting_type {
+  meeting_type_id   Int        @id @default(autoincrement())
+  meeting_type_name String     @db.VarChar(100)
+  remarks           String?
+  company_id        Int?
+  company           companies? @relation(fields: [company_id], references: [company_id], onDelete: SetNull)
+  created_at        DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?  @default(now()) @db.Timestamp(6)
+  meetings          meetings[]
+
+  @@index([company_id])
+}
+
+model meetings {
+  meeting_id            Int              @id @default(autoincrement())
+  meeting_date          DateTime         @db.Timestamp(6)
+  meeting_type_id       Int?
+  meeting_description   String?
+  document_path         String?          @db.VarChar(255)
+  meeting_link          String?          @db.VarChar(512)
+  is_cancelled          Boolean?         @default(false)
+  is_completed          Boolean?         @default(false)
+  cancellation_reason   String?
+  cancellation_datetime DateTime?        @db.Timestamp(6)
+  company_id            Int?
+  company               companies?       @relation(fields: [company_id], references: [company_id], onDelete: SetNull)
+  created_at            DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at            DateTime?        @default(now()) @db.Timestamp(6)
+  meeting_member        meeting_member[]
+  meeting_type          meeting_type?    @relation(fields: [meeting_type_id], references: [meeting_type_id], onDelete: NoAction, onUpdate: NoAction)
+  created_by            Int?
+  creator               users?           @relation(fields: [created_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  meeting_admin_id      Int?
+  meeting_admin         users?           @relation("MeetingAdmin", fields: [meeting_admin_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  action_items          ActionItem[]
+
+  @@index([company_id])
+  @@index([company_id, meeting_date])
+  @@index([company_id, is_completed])
+}
+
 model meeting_member {
   meeting_member_id Int       @id @default(autoincrement())
   meeting_id        Int?
@@ -21,42 +159,12 @@ model meeting_member {
   @@unique([meeting_id, staff_id])
 }
 
-model meeting_type {
-  meeting_type_id   Int        @id @default(autoincrement())
-  meeting_type_name String     @db.VarChar(100)
-  remarks           String?
-  created_at        DateTime?  @default(now()) @db.Timestamp(6)
-  updated_at        DateTime?  @default(now()) @db.Timestamp(6)
-  meetings          meetings[]
-}
-
-model meetings {
-  meeting_id            Int              @id @default(autoincrement())
-  meeting_date          DateTime         @db.Timestamp(6)
-  meeting_type_id       Int?
-  meeting_description   String?
-  document_path         String?          @db.VarChar(255)
-  meeting_link          String?          @db.VarChar(512)
-  is_cancelled          Boolean?         @default(false)
-  is_completed          Boolean?         @default(false)
-  cancellation_reason   String?
-  cancellation_datetime DateTime?        @db.Timestamp(6)
-  created_at            DateTime?        @default(now()) @db.Timestamp(6)
-  updated_at            DateTime?        @default(now()) @db.Timestamp(6)
-  meeting_member        meeting_member[]
-  meeting_type          meeting_type?    @relation(fields: [meeting_type_id], references: [meeting_type_id], onDelete: NoAction, onUpdate: NoAction)
-  created_by            Int?
-  creator               users?           @relation(fields: [created_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-  meeting_admin_id      Int?
-  meeting_admin         users?           @relation("MeetingAdmin", fields: [meeting_admin_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-  action_items          ActionItem[]
-}
-
 model ActionItem {
   action_item_id Int       @id @default(autoincrement())
   description    String
   is_completed   Boolean   @default(false)
   due_date       DateTime? @db.Timestamp(6)
+  company_id     Int?
   created_at     DateTime? @default(now()) @db.Timestamp(6)
   updated_at     DateTime? @default(now()) @db.Timestamp(6)
 
@@ -65,32 +173,7 @@ model ActionItem {
 
   assigned_to    Int?
   assignee       staff?    @relation(fields: [assigned_to], references: [staff_id], onDelete: SetNull)
+
+  @@index([company_id])
+  @@index([meeting_id])
 }
-
-model staff {
-  staff_id       Int              @id @default(autoincrement())
-  staff_name     String           @db.VarChar(100)
-  mobile_no      String?          @db.VarChar(15)
-  email          String?          @db.VarChar(100)
-  remarks        String?
-  created_at     DateTime?        @default(now()) @db.Timestamp(6)
-  updated_at     DateTime?        @default(now()) @db.Timestamp(6)
-  meeting_member meeting_member[]
-  assigned_actions ActionItem[]
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model users {
-  user_id    Int      @id @default(autoincrement())
-  name       String
-  email      String   @unique
-  password   String
-  role       String
-  created_at       DateTime   @default(now())
-  meetings         meetings[]
-  managed_meetings meetings[] @relation("MeetingAdmin")
-  reset_token      String?
-  reset_token_expiry DateTime?
-}
-
-

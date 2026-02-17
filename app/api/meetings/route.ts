@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-// GET: fetch all meetings
-// GET: fetch all meetings (Filtered by Role)
+// GET: fetch all meetings (filtered by company_id + role)
 export async function GET(req: Request) {
   try {
     const userId = req.headers.get('x-user-id')
     const role = req.headers.get('x-user-role')
+    const companyId = req.headers.get('x-company-id')
 
     let whereClause: any = {}
 
-    if (role !== 'ADMIN' && userId) {
-      // Find staff record for this user (by email) to check attendance
+    // Company isolation — each company sees only their own meetings
+    if (!companyId) {
+      // SUPER_ADMIN or users without company see nothing in tenant routes
+      return NextResponse.json({ data: [] })
+    }
+    whereClause.company_id = Number(companyId)
+
+    // Role-based visibility within company
+    if (role !== 'ADMIN' && role !== 'COMPANY_ADMIN' && userId) {
       const user = await prisma.users.findUnique({ where: { user_id: Number(userId) } })
 
       let staffId = null
@@ -21,10 +28,11 @@ export async function GET(req: Request) {
       }
 
       whereClause = {
+        ...whereClause,
         OR: [
-          { created_by: Number(userId) }, // Created by me
-          { meeting_admin_id: Number(userId) }, // I am the Meeting Admin
-          ...(staffId ? [{ meeting_member: { some: { staff_id: staffId } } }] : []) // Attending
+          { created_by: Number(userId) },
+          { meeting_admin_id: Number(userId) },
+          ...(staffId ? [{ meeting_member: { some: { staff_id: staffId } } }] : [])
         ]
       }
     }
@@ -52,12 +60,14 @@ export async function GET(req: Request) {
   }
 }
 
-// POST: create a meeting
+// POST: create a meeting (with company_id)
 export async function POST(req: Request) {
   try {
     const role = req.headers.get('x-user-role')
-    if (role !== 'ADMIN' && role !== 'CONVENER') {
-      return NextResponse.json({ message: 'Forbidden: Admins and Conveners only' }, { status: 403 })
+    const companyId = req.headers.get('x-company-id')
+
+    if (role !== 'ADMIN' && role !== 'COMPANY_ADMIN' && role !== 'CONVENER') {
+      return NextResponse.json({ message: 'Forbidden: Only admins and conveners can create meetings' }, { status: 403 })
     }
 
     const { meetingDate, meetingTypeId, description, staffIds, meetingAdminId, meetingLink } = await req.json()
@@ -71,7 +81,6 @@ export async function POST(req: Request) {
 
     const userId = req.headers.get('x-user-id')
 
-    // Transaction to create meeting and members
     const meeting = await prisma.$transaction(async (tx) => {
       const m = await tx.meetings.create({
         data: {
@@ -80,7 +89,8 @@ export async function POST(req: Request) {
           meeting_description: description,
           created_by: userId ? Number(userId) : null,
           meeting_admin_id: meetingAdminId ? Number(meetingAdminId) : null,
-          meeting_link: meetingLink || null
+          meeting_link: meetingLink || null,
+          company_id: companyId ? Number(companyId) : null
         }
       })
 
@@ -96,8 +106,24 @@ export async function POST(req: Request) {
 
       return m
     }, {
-      maxWait: 5000, // Wait up to 5s for a connection
-      timeout: 10000 // Transaction can take up to 10s
+      maxWait: 5000,
+      timeout: 10000
+    })
+
+    // Audit Log
+    await prisma.audit_logs.create({
+      data: {
+        company_id: companyId ? Number(companyId) : null,
+        user_id: userId ? Number(userId) : null,
+        action: 'CREATE_MEETING',
+        entity_type: 'meetings',
+        entity_id: meeting.meeting_id,
+        details: JSON.stringify({
+          meeting_type_id: meetingTypeId,
+          date: meetingDate,
+          participant_count: staffIds?.length || 0
+        })
+      }
     })
 
     return NextResponse.json({

@@ -5,11 +5,18 @@ export async function GET(req: Request) {
     try {
         const userId = req.headers.get('x-user-id')
         const role = req.headers.get('x-user-role')
+        const companyId = req.headers.get('x-company-id')
 
         let baseWhere: any = {}
 
-        if (role !== 'ADMIN' && userId) {
-            // Determine Staff ID
+        // Company isolation
+        if (!companyId) {
+            return NextResponse.json({ success: true, data: { stats: { total: 0, cancelled: 0, pendingMOM: 0 }, ongoing: [], upcoming: [], recentMOMs: [] } })
+        }
+        baseWhere.company_id = Number(companyId)
+
+        // Role-based filtering within company
+        if (role !== 'ADMIN' && role !== 'COMPANY_ADMIN' && userId) {
             const user = await prisma.users.findUnique({ where: { user_id: Number(userId) } })
             let staffId = null
             if (user?.email) {
@@ -18,6 +25,7 @@ export async function GET(req: Request) {
             }
 
             baseWhere = {
+                ...baseWhere,
                 OR: [
                     { created_by: Number(userId) },
                     ...(staffId ? [{ meeting_member: { some: { staff_id: staffId } } }] : [])
@@ -25,7 +33,6 @@ export async function GET(req: Request) {
             }
         }
 
-        // Apply filters to all counts
         const totalMeetings = await prisma.meetings.count({
             where: baseWhere
         })
@@ -37,12 +44,11 @@ export async function GET(req: Request) {
             }
         })
 
-        // Pending MOM: Stricter filter - only if I am responsible (Creator or Meeting Admin)
         let pendingWhere = { ...baseWhere }
 
-        if (role !== 'ADMIN' && userId) {
-            // override baseWhere for "Pending MOM" to be "Actionable" items only
+        if (role !== 'ADMIN' && role !== 'COMPANY_ADMIN' && userId) {
             pendingWhere = {
+                ...baseWhere,
                 OR: [
                     { created_by: Number(userId) },
                     { meeting_admin_id: Number(userId) }
@@ -59,13 +65,11 @@ export async function GET(req: Request) {
             }
         })
 
-        // Logic: Show meetings starting from "Start of Today" so users can see today's schedule even if time passed
         const startOfDay = new Date()
         startOfDay.setHours(0, 0, 0, 0)
 
         const now = new Date()
 
-        // Ongoing: Started today, not separated, not cancelled, <= NOW
         const ongoingMeetings = await prisma.meetings.findMany({
             where: {
                 ...baseWhere,
@@ -74,13 +78,12 @@ export async function GET(req: Request) {
                     lte: now
                 },
                 is_cancelled: false,
-                is_completed: false // Only active ones
+                is_completed: false
             },
             orderBy: { meeting_date: 'asc' },
             include: { meeting_type: true }
         })
 
-        // Upcoming: Strictly in the future
         const upcomingMeetings = await prisma.meetings.findMany({
             where: {
                 ...baseWhere,

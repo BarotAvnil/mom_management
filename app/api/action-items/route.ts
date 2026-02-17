@@ -2,17 +2,24 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-// GET: Fetch action items
+// GET: Fetch action items (company-scoped via meeting)
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url)
         const meetingId = searchParams.get('meetingId')
         const staffId = searchParams.get('staffId')
+        const companyId = req.headers.get('x-company-id')
+        const role = req.headers.get('x-user-role')
 
         const where: any = {}
 
         if (meetingId) where.meeting_id = Number(meetingId)
         if (staffId) where.assigned_to = Number(staffId)
+
+        // Company isolation
+        if (companyId) {
+            where.company_id = Number(companyId)
+        }
 
         const items = await prisma.actionItem.findMany({
             where,
@@ -34,9 +41,10 @@ export async function GET(req: Request) {
     }
 }
 
-// POST: Create action item
+// POST: Create action item (with company_id)
 export async function POST(req: Request) {
     try {
+        const companyId = req.headers.get('x-company-id')
         const body = await req.json()
         const { description, meetingId, assignedTo, dueDate } = body
 
@@ -49,7 +57,8 @@ export async function POST(req: Request) {
                 description,
                 meeting_id: Number(meetingId),
                 assigned_to: assignedTo ? Number(assignedTo) : null,
-                due_date: dueDate ? new Date(dueDate) : null
+                due_date: dueDate ? new Date(dueDate) : null,
+                company_id: companyId ? Number(companyId) : null
             },
             include: {
                 assignee: true

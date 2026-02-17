@@ -32,7 +32,7 @@ export async function GET(
     const userId = req.headers.get('x-user-id')
     const role = req.headers.get('x-user-role')
 
-    if (role !== 'ADMIN') {
+    if (role !== 'ADMIN' && role !== 'COMPANY_ADMIN') {
       // If not System Admin, check other permissions
       const isCreator = meeting.created_by === Number(userId)
       const isMeetingAdmin = meeting.meeting_admin_id === Number(userId)
@@ -91,7 +91,7 @@ export async function PUT(
 
     const isCreator = existingMeeting.created_by === Number(userId)
     const isMeetingAdmin = existingMeeting.meeting_admin_id === Number(userId)
-    const isSysAdmin = role === 'ADMIN'
+    const isSysAdmin = role === 'ADMIN' || role === 'COMPANY_ADMIN'
 
     // Only Creator, Meeting Admin, or System Admin can edit
     if (!isCreator && !isMeetingAdmin && !isSysAdmin) {

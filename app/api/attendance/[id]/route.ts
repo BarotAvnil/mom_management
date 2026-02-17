@@ -50,7 +50,7 @@ export async function PUT(
     })
 
     const role = req.headers.get('x-user-role')
-    const isSysAdmin = role === 'ADMIN'
+    const isSysAdmin = role === 'ADMIN' || role === 'COMPANY_ADMIN'
 
     // Check if user is Creator, Meeting Admin, or System Admin
     const isCreator = creatorId && creatorId === Number(userId)
@@ -125,7 +125,7 @@ export async function DELETE(
     if (!record || !record.meetings) return NextResponse.json({ message: 'Record not found' }, { status: 404 })
 
     // 3. Permission Check
-    const isSysAdmin = userRole === 'ADMIN'
+    const isSysAdmin = userRole === 'ADMIN' || userRole === 'COMPANY_ADMIN'
     const isCreator = record.meetings.created_by === Number(userId)
     const isMeetingAdmin = record.meetings.meeting_admin_id === Number(userId)
 

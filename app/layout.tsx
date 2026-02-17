@@ -1,12 +1,15 @@
-import { Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import AppShell from '@/components/AppShell'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
+})
 
 export const metadata = {
-  title: 'MOM Management',
-  description: 'Manage your meetings and minutes efficiently',
+  title: 'MOM Management — Enterprise Meeting Minutes',
+  description: 'Professional Minutes of Meeting management platform for enterprise teams',
 }
 
 export default function RootLayout({
@@ -16,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} h-screen w-screen overflow-hidden bg-background text-foreground antialiased`}>
+      <body className={`${plusJakarta.className} h-screen w-screen overflow-hidden bg-background text-foreground antialiased`}>
         <AppShell>
           {children}
         </AppShell>

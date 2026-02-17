@@ -1,154 +1,117 @@
 'use client'
 
-import { useState, useOptimistic, startTransition } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, MessageSquare, Trash2, Check, X, Shield, MoreHorizontal } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Check, X, Trash2, MessageSquare, ChevronDown } from 'lucide-react'
 
 interface AttendanceRowProps {
     member: any
     isAdmin: boolean
-    onToggle: (id: number, current: boolean) => void
+    onToggle: (id: number, currentStatus: boolean) => void
     onRemove: (id: number) => void
     onUpdateRemark: (id: number, remark: string) => void
 }
 
-const COLORS = [
-    'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
-    'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
-    'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
-    'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500',
-    'bg-rose-500'
+const AVATAR_COLORS = [
+    'bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500',
+    'bg-violet-500', 'bg-sky-500', 'bg-teal-500', 'bg-pink-500',
 ]
 
 export function AttendanceRow({ member, isAdmin, onToggle, onRemove, onUpdateRemark }: AttendanceRowProps) {
-    const [isRemarkOpen, setRemarkOpen] = useState(false)
-    const [remarkText, setRemarkText] = useState(member.remarks || '')
+    const [expanded, setExpanded] = useState(false)
+    const [remark, setRemark] = useState(member.remarks || '')
+    const [saving, setSaving] = useState(false)
 
-    // Deterministic Avatar Color
-    const colorIndex = (member.staff_id || 0) % COLORS.length
-    const avatarColor = COLORS[colorIndex]
-    const initials = member.staff?.staff_name?.slice(0, 2).toUpperCase() || '??'
+    const name = member.staff?.staff_name || 'Unknown'
+    const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    const color = useMemo(() => {
+        const hash = name.split('').reduce((acc: number, ch: string) => acc + ch.charCodeAt(0), 0)
+        return AVATAR_COLORS[hash % AVATAR_COLORS.length]
+    }, [name])
 
-    // Optimistic UI for Status
-    // We use local state here because keeping it simple without full `useOptimistic` hook which requires experimental react or server actions might be safer for this setup.
-    // However, the user asked for optimistic UI. I will simulate it by managing local state that syncs with props but updates instantly on click.
+    const handleSaveRemark = async () => {
+        setSaving(true)
+        await onUpdateRemark(member.meeting_member_id, remark)
+        setSaving(false)
+    }
 
     return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="group bg-card hover:shadow-lg transition-all duration-300 rounded-xl border border-border/50 overflow-hidden mb-3"
-        >
-            <div className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-
-                {/* 1. Avatar & Info */}
-                <div className="flex items-center gap-4 flex-1">
-                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm", avatarColor)}>
+        <div className="glass-card rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-4 md:p-5">
+                <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl ${color} text-white font-bold text-sm flex items-center justify-center shadow-sm`}>
                         {initials}
                     </div>
                     <div>
-                        <h4 className="font-semibold text-foreground flex items-center gap-2">
-                            {member.staff?.staff_name}
-                            {/* Role Badge if needed, currently only 'Participant' is known */}
-                        </h4>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            {member.staff?.email || 'No email'}
-                        </span>
+                        <p className="font-semibold text-foreground text-sm">{name}</p>
+                        <p className="text-xs text-muted-foreground">{member.staff?.email || ''}</p>
                     </div>
                 </div>
 
-                {/* 2. Controls */}
-                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                <div className="flex items-center gap-2">
+                    {/* Status Toggle */}
+                    <button
+                        onClick={() => onToggle(member.meeting_member_id, member.is_present)}
+                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${member.is_present
+                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/50'
+                            : 'bg-red-50 text-red-500 border border-red-200/50'
+                            }`}
+                    >
+                        {member.is_present ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+                        {member.is_present ? 'Present' : 'Absent'}
+                    </button>
 
-                    {/* Status Toggle (Segmented Control) */}
-                    <div className="bg-secondary/50 p-1 rounded-lg flex items-center relative">
-                        {/* Validation: Disable if not admin */}
-                        <button
-                            disabled={!isAdmin}
-                            onClick={() => onToggle(member.meeting_member_id, member.is_present)}
-                            className={cn(
-                                "relative z-10 px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200 flex items-center gap-1.5",
-                                member.is_present ? "text-emerald-700 dark:text-emerald-400 bg-white dark:bg-zinc-800 shadow-sm" : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            {member.is_present && <Check className="w-3 h-3" />}
-                            Present
-                        </button>
-                        <button
-                            disabled={!isAdmin}
-                            onClick={() => onToggle(member.meeting_member_id, member.is_present)}
-                            className={cn(
-                                "relative z-10 px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200 flex items-center gap-1.5",
-                                !member.is_present ? "text-rose-700 dark:text-rose-400 bg-white dark:bg-zinc-800 shadow-sm" : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            {!member.is_present && <X className="w-3 h-3" />}
-                            Absent
-                        </button>
-                    </div>
+                    {/* Remarks Toggle */}
+                    <button
+                        onClick={() => setExpanded(!expanded)}
+                        className={`p-2 rounded-lg transition-colors ${expanded ? 'bg-indigo-50 text-indigo-600' : 'text-muted-foreground hover:bg-white/50'}`}
+                    >
+                        <MessageSquare className="w-4 h-4" />
+                    </button>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 border-l border-border pl-3">
+                    {/* Remove Button */}
+                    {isAdmin && (
                         <button
-                            onClick={() => setRemarkOpen(!isRemarkOpen)}
-                            className={cn("p-2 rounded-lg transition-colors hover:bg-secondary relative", (member.remarks || isRemarkOpen) ? "text-primary bg-primary/10" : "text-muted-foreground")}
-                            title="Add Remark"
+                            onClick={() => onRemove(member.meeting_member_id)}
+                            className="p-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50/50 transition-colors"
                         >
-                            <MessageSquare className="w-4 h-4" />
-                            {member.remarks && !isRemarkOpen && (
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full ring-2 ring-white dark:ring-zinc-950"></span>
-                            )}
+                            <Trash2 className="w-4 h-4" />
                         </button>
-
-                        {isAdmin && (
-                            <button
-                                onClick={() => onRemove(member.meeting_member_id)}
-                                className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                                title="Remove User"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
 
-            {/* 3. Remarks Section (Inline Expansion) */}
+            {/* Expandable Remarks Section */}
             <AnimatePresence>
-                {isRemarkOpen && (
+                {expanded && (
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="border-t border-border bg-secondary/10 overflow-hidden"
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
                     >
-                        <div className="p-4 flex gap-3">
-                            <input
-                                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
-                                placeholder="Add a remark for this attendee (e.g. 'Left early', 'Joined online')..."
-                                value={remarkText}
-                                onChange={(e) => setRemarkText(e.target.value)}
-                                onBlur={() => onUpdateRemark(member.meeting_member_id, remarkText)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        onUpdateRemark(member.meeting_member_id, remarkText)
-                                        // Optional: setRemarkOpen(false) or keep open
-                                    }
-                                }}
-                            />
-                            <button
-                                onClick={() => onUpdateRemark(member.meeting_member_id, remarkText)}
-                                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold"
-                            >
-                                Save
-                            </button>
+                        <div className="px-5 pb-5 pt-1 border-t border-white/10">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">Remarks</label>
+                            <div className="flex gap-2">
+                                <input
+                                    className="flex-1 border border-border px-3 py-2 rounded-xl text-sm bg-white/60 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all"
+                                    placeholder="Add a note about this member..."
+                                    value={remark}
+                                    onChange={e => setRemark(e.target.value)}
+                                />
+                                <button
+                                    onClick={handleSaveRemark}
+                                    disabled={saving}
+                                    className="bg-indigo-600 text-white px-4 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-500/10 disabled:opacity-50 active:scale-[0.98]"
+                                >
+                                    {saving ? '...' : 'Save'}
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
-        </motion.div>
+        </div>
     )
 }

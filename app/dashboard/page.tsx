@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/ui/Toast'
+import { CalendarDays, Ban, FileText, Plus, Clock, ChevronRight, Loader2 } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -17,8 +18,8 @@ export default function DashboardPage() {
   const [upcoming, setUpcoming] = useState<any[]>([])
   const [recentMOMs, setRecentMOMs] = useState<any[]>([])
   const [meetingTypes, setMeetingTypes] = useState<any[]>([])
-  const [staffList, setStaffList] = useState<any[]>([]) // [NEW]
-  const [usersList, setUsersList] = useState<any[]>([]) // [NEW]
+  const [staffList, setStaffList] = useState<any[]>([])
+  const [usersList, setUsersList] = useState<any[]>([])
   const [loadingConfig, setLoadingConfig] = useState(true)
 
   // Configuration (Roles)
@@ -31,7 +32,7 @@ export default function DashboardPage() {
     typeId: '',
     desc: '',
     staffIds: [] as string[],
-    meetingAdminId: '' // [NEW]
+    meetingAdminId: ''
   })
   const [submitting, setSubmitting] = useState(false)
 
@@ -57,23 +58,19 @@ export default function DashboardPage() {
 
   const loadConfigs = async () => {
     try {
-      // Decode token for role
       if (token) {
         const payload = JSON.parse(atob(token.split('.')[1]))
         setUserRole(payload.role)
       }
 
-      // Meeting Types
       const tRes = await fetch('/api/meeting-type', { headers: { Authorization: `Bearer ${token}` } })
       const tData = await tRes.json()
       if (tData.data) setMeetingTypes(tData.data)
 
-      // Staff List
       const sRes = await fetch('/api/staff', { headers: { Authorization: `Bearer ${token}` } })
       const sData = await sRes.json()
       if (sData.data) setStaffList(sData.data)
 
-      // Users List (Potential Meeting Admins) - Attempt fetch
       const uRes = await fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } })
       if (uRes.ok) {
         const uData = await uRes.json()
@@ -131,41 +128,42 @@ export default function DashboardPage() {
 
   if (!ready || loadingConfig) return (
     <div className="flex h-96 items-center justify-center">
-      <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
     </div>
   )
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-fade-in p-6">
+    <div className="max-w-7xl mx-auto space-y-8 animate-fade-in p-2 md:p-6">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-1 text-sm">Welcome back! Overview of your meeting activities.</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-500/10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-[0.98]"
         >
-          <span className="mr-2 text-lg">＋</span> Schedule Meeting
+          <Plus className="w-4 h-4" />
+          Schedule Meeting
         </button>
       </div>
 
       {/* STATS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard delay={0} title="Total Meetings" value={stats.total} icon="📅" color="bg-secondary text-primary" />
-        <StatCard delay={100} title="Cancelled" value={stats.cancelled} icon="🚫" color="bg-secondary text-destructive" />
-        <StatCard delay={200} title="Pending MOMs" value={stats.pendingMOM} icon="📝" color="bg-secondary text-amber-600" />
+        <StatCard delay={0} title="Total Meetings" value={stats.total} icon={<CalendarDays className="w-5 h-5 text-indigo-600" />} iconBg="bg-indigo-50" />
+        <StatCard delay={100} title="Cancelled" value={stats.cancelled} icon={<Ban className="w-5 h-5 text-red-500" />} iconBg="bg-red-50" />
+        <StatCard delay={200} title="Pending MOMs" value={stats.pendingMOM} icon={<FileText className="w-5 h-5 text-amber-600" />} iconBg="bg-amber-50" />
       </div>
 
-      {/* ONGOING MEETINGS (High Priority) */}
+      {/* ONGOING MEETINGS */}
       {ongoing.length > 0 && (
-        <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-6 animate-slide-in">
+        <div className="glass-card rounded-2xl p-6 ring-1 ring-indigo-200/30 animate-slide-in">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2.5">
+              <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
               </span>
               Ongoing Meetings
             </h2>
@@ -173,14 +171,15 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {ongoing.map(m => (
               <Link href={`/meetings/${m.meeting_id}`} key={m.meeting_id} className="block group">
-                <div className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all">
+                <div className="glass-inner p-4 rounded-xl hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md uppercase tracking-wide">Happening Now</span>
-                    <span className="text-xs text-slate-500">{new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg uppercase tracking-wide">Happening Now</span>
+                    <span className="text-xs text-muted-foreground">{new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-indigo-700 transition-colors">{m.meeting_description || 'No Description'}</h3>
-                  <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-                    <span>🏷️ {m.meeting_type?.meeting_type_name}</span>
+                  <h3 className="font-bold text-foreground text-lg leading-tight group-hover:text-indigo-600 transition-colors">{m.meeting_description || 'No Description'}</h3>
+                  <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Tags className="w-3.5 h-3.5" />
+                    {m.meeting_type?.meeting_type_name}
                   </div>
                 </div>
               </Link>
@@ -191,18 +190,16 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* UPCOMING MEETINGS */}
-        <div className="bg-card border border-border rounded-xl p-6 animate-slide-in" style={{ animationDelay: '300ms' }}>
+        <div className="glass-card rounded-2xl p-6 animate-slide-in" style={{ animationDelay: '300ms' }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              Upcoming Meetings
-            </h2>
-            <Link href="/meetings" className="text-sm font-medium text-primary hover:underline">View All →</Link>
+            <h2 className="text-lg font-semibold text-foreground">Upcoming Meetings</h2>
+            <Link href="/meetings" className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">View All →</Link>
           </div>
           <div className="space-y-3">
             {upcoming.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg">
+              <div className="text-center py-8 text-muted-foreground text-sm border-2 border-dashed border-border rounded-xl">
                 <p>No upcoming meetings scheduled.</p>
-                <button onClick={() => setIsModalOpen(true)} className="text-primary font-medium mt-2 hover:underline">Schedule one now</button>
+                <button onClick={() => setIsModalOpen(true)} className="text-indigo-600 font-medium mt-2 hover:underline">Schedule one now</button>
               </div>
             ) : (
               upcoming.map((m, i) => {
@@ -216,24 +213,26 @@ export default function DashboardPage() {
                     key={m.meeting_id}
                     className="block group"
                   >
-                    <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg border border-transparent group-hover:border-border group-hover:bg-secondary transition-all duration-200">
+                    <div className="flex items-center justify-between p-4 glass-inner rounded-xl group-hover:shadow-sm transition-all duration-200">
                       <div className="flex gap-4">
-                        <div className="flex flex-col items-center justify-center w-12 h-12 bg-background rounded-md border border-border font-bold text-foreground">
+                        <div className="flex flex-col items-center justify-center w-12 h-12 bg-white/80 rounded-xl border border-border font-bold text-foreground">
                           <span className="text-[10px] text-muted-foreground uppercase">{new Date(m.meeting_date).toLocaleString('en-US', { month: 'short' })}</span>
                           <span className="text-lg leading-none">{new Date(m.meeting_date).getDate()}</span>
                         </div>
                         <div>
                           <div className="font-medium text-foreground flex items-center gap-2">
                             {m.meeting_description || 'No Description'}
-                            {isEnded && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600">ENDED</span>}
+                            {isEnded && <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-500">ENDED</span>}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                            <Clock className="w-3 h-3" />
                             {new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             <span className="text-border">•</span>
                             {m.meeting_type?.meeting_type_name}
                           </div>
                         </div>
                       </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </Link>
                 )
@@ -243,21 +242,19 @@ export default function DashboardPage() {
         </div>
 
         {/* RECENT MOMS */}
-        <div className="bg-card border border-border rounded-xl p-6 animate-slide-in" style={{ animationDelay: '400ms' }}>
+        <div className="glass-card rounded-2xl p-6 animate-slide-in" style={{ animationDelay: '400ms' }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              Recent MOM Uploads
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground">Recent MOM Uploads</h2>
           </div>
           <div className="space-y-3">
             {recentMOMs.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg">No MOMs uploaded recently.</div>
+              <div className="text-center py-8 text-muted-foreground text-sm border-2 border-dashed border-border rounded-xl">No MOMs uploaded recently.</div>
             ) : (
               recentMOMs.map((m, i) => (
-                <div key={m.meeting_id} className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-transparent hover:border-border transition-all">
+                <div key={m.meeting_id} className="flex items-center justify-between p-4 glass-inner rounded-xl hover:shadow-sm transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="text-muted-foreground">
-                      📄
+                    <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-indigo-500" />
                     </div>
                     <div>
                       <div className="font-medium text-foreground text-sm line-clamp-1">MOM - Meeting #{m.meeting_id}</div>
@@ -270,7 +267,7 @@ export default function DashboardPage() {
                     <a
                       href={m.document_path.startsWith('/') ? m.document_path : `/${m.document_path}`}
                       target="_blank"
-                      className="px-3 py-1.5 text-xs font-medium bg-background border border-border rounded-md hover:bg-secondary transition-colors"
+                      className="px-3.5 py-1.5 text-xs font-medium bg-white/70 backdrop-blur-sm border border-border rounded-lg hover:bg-white transition-colors"
                     >
                       Download
                     </a>
@@ -284,13 +281,13 @@ export default function DashboardPage() {
 
       {/* CREATE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-slide-in">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h3 className="text-lg font-bold text-slate-800">Schedule New Meeting</h3>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="glass rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up">
+            <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-foreground">Schedule New Meeting</h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full text-muted-foreground hover:bg-white/50 hover:text-foreground transition-colors"
               >
                 ✕
               </button>
@@ -299,23 +296,23 @@ export default function DashboardPage() {
             <form onSubmit={createMeeting} className="p-6 space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Date & Time *</label>
+                  <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5 tracking-wider">Date & Time *</label>
                   <input
                     type="datetime-local"
                     required
                     value={newMeeting.date}
                     onChange={e => setNewMeeting({ ...newMeeting, date: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
+                    className="w-full px-3.5 py-2.5 bg-white/60 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Type *</label>
+                  <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5 tracking-wider">Type *</label>
                   <div className="relative">
                     <select
                       required
                       value={newMeeting.typeId}
                       onChange={e => setNewMeeting({ ...newMeeting, typeId: e.target.value })}
-                      className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all appearance-none"
+                      className="w-full px-3.5 py-2.5 bg-white/60 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all appearance-none text-sm"
                     >
                       <option value="">Select Type</option>
                       {meetingTypes.map(t => (
@@ -328,15 +325,14 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Meeting Admin Selection (Visible if users loaded) */}
                 {usersList.length > 0 && (
                   <div className="col-span-2">
-                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Assign Meeting Admin (Optional)</label>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5 tracking-wider">Assign Meeting Admin (Optional)</label>
                     <div className="relative">
                       <select
                         value={newMeeting.meetingAdminId}
                         onChange={e => setNewMeeting({ ...newMeeting, meetingAdminId: e.target.value })}
-                        className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all appearance-none"
+                        className="w-full px-3.5 py-2.5 bg-white/60 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all appearance-none text-sm"
                       >
                         <option value="">Myself</option>
                         {usersList.map(u => (
@@ -351,13 +347,13 @@ export default function DashboardPage() {
 
               {/* STAFF SELECTION */}
               <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Add Participants</label>
-                <div className="max-h-40 overflow-y-auto border border-border rounded-lg p-2 bg-secondary/50 space-y-2">
+                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5 tracking-wider">Add Participants</label>
+                <div className="max-h-40 overflow-y-auto border border-border rounded-xl p-2.5 bg-white/40 backdrop-blur-sm space-y-1.5">
                   {staffList.length === 0 ? <p className="text-xs text-muted-foreground p-2">No staff available.</p> : staffList.map(s => (
-                    <label key={s.staff_id} className="flex items-center gap-2 p-1.5 hover:bg-background rounded cursor-pointer transition-colors border border-transparent hover:border-border">
+                    <label key={s.staff_id} className="flex items-center gap-2.5 p-2 hover:bg-white/60 rounded-lg cursor-pointer transition-colors">
                       <input
                         type="checkbox"
-                        className="rounded border-border text-primary focus:ring-primary"
+                        className="rounded border-border text-indigo-600 focus:ring-indigo-500"
                         checked={newMeeting.staffIds.includes(String(s.staff_id))}
                         onChange={e => {
                           const id = String(s.staff_id)
@@ -376,28 +372,28 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Description</label>
+                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5 tracking-wider">Description</label>
                 <textarea
                   rows={3}
                   value={newMeeting.desc}
                   onChange={e => setNewMeeting({ ...newMeeting, desc: e.target.value })}
-                  className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all resize-none"
+                  className="w-full px-3.5 py-2.5 bg-white/60 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all resize-none text-sm"
                   placeholder="What is this meeting about?"
                 />
               </div>
 
-              <div className="pt-4 flex gap-3 justify-end border-t border-border mt-4">
+              <div className="pt-4 flex gap-3 justify-end border-t border-white/10 mt-4">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 text-muted-foreground hover:bg-secondary rounded-lg font-medium transition-colors text-sm"
+                  className="px-5 py-2.5 text-muted-foreground hover:bg-white/50 rounded-xl font-medium transition-colors text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2.5 bg-primary text-primary-foreground hover:opacity-90 rounded-lg font-medium shadow-sm transition-all disabled:opacity-70 disabled:pointer-events-none text-sm"
+                  className="px-6 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl font-medium shadow-sm shadow-indigo-500/10 transition-all disabled:opacity-70 disabled:pointer-events-none text-sm active:scale-[0.98]"
                 >
                   {submitting ? 'Scheduling...' : 'Schedule Meeting'}
                 </button>
@@ -410,18 +406,28 @@ export default function DashboardPage() {
   )
 }
 
-function StatCard({ title, value, icon, color, delay }: { title: string, value: number, icon: string, color: string, delay: number }) {
+function Tags({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z" />
+      <path d="M6 9.01V9" />
+      <path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19" />
+    </svg>
+  )
+}
+
+function StatCard({ title, value, icon, iconBg, delay }: { title: string, value: number, icon: React.ReactNode, iconBg: string, delay: number }) {
   return (
     <div
-      className="bg-card border border-border p-6 rounded-xl flex items-center gap-5 animate-slide-in group cursor-default hover:shadow-sm transition-all"
+      className="glass-card rounded-2xl p-6 flex items-center gap-5 animate-slide-in group cursor-default"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl ${color}`}>
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconBg}`}>
         {icon}
       </div>
       <div>
         <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">{title}</p>
-        <p className="text-3xl font-bold text-foreground mt-1">{value}</p>
+        <p className="text-3xl font-bold text-foreground mt-1 tracking-tight">{value}</p>
       </div>
     </div>
   )

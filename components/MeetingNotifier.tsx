@@ -50,8 +50,8 @@ export function MeetingNotifier() {
                     }
                 })
 
-            } catch (error) {
-                console.error('Silent notification check failed', error)
+            } catch {
+                // Silent background polling — errors are expected on some pages
             }
         }
 

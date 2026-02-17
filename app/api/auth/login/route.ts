@@ -14,8 +14,9 @@ export async function POST(req: Request) {
       )
     }
 
-    const user = await prisma.users.findUnique({
-      where: { email }
+    const user = await prisma.users.findFirst({
+      where: { email },
+      include: { company: true }
     })
 
     if (!user) {
@@ -34,10 +35,22 @@ export async function POST(req: Request) {
       )
     }
 
+    // Block login if company is suspended or soft-deleted (SUPER_ADMIN bypasses)
+    if (user.role !== 'SUPER_ADMIN' && user.company) {
+      if (user.company.status !== 'ACTIVE' || user.company.deleted_at) {
+        return NextResponse.json(
+          { message: 'Your company account is suspended. Contact support.' },
+          { status: 403 }
+        )
+      }
+    }
+
+    // JWT includes company_id (null for SUPER_ADMIN)
     const token = jwt.sign(
       {
         id: user.user_id,
-        role: user.role
+        role: user.role,
+        company_id: user.company_id // null for SUPER_ADMIN
       },
       process.env.JWT_SECRET as string,
       { expiresIn: '1d' }
@@ -50,7 +63,9 @@ export async function POST(req: Request) {
         id: user.user_id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        company_id: user.company_id,
+        company_name: user.company?.company_name || null
       }
     })
 
@@ -58,8 +73,20 @@ export async function POST(req: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 86400, // 1 day
+      maxAge: 86400,
       path: '/'
+    })
+
+    // Audit log for login
+    await prisma.audit_logs.create({
+      data: {
+        user_id: user.user_id,
+        action: 'USER_LOGIN',
+        entity_type: 'users',
+        entity_id: user.user_id,
+        company_id: user.company_id,
+        details: JSON.stringify({ role: user.role, ip: req.headers.get('x-forwarded-for') || 'unknown' })
+      }
     })
 
     return response

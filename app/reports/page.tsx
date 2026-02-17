@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/useAuth'
+import { Download, Filter, RefreshCw, Loader2 } from 'lucide-react'
 
 export default function ReportsPage() {
     const { token, ready } = useAuth()
@@ -71,44 +72,48 @@ export default function ReportsPage() {
     if (!ready) return null
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6 p-6 animate-fade-in">
-            <div className="flex justify-between items-center border-b border-border pb-6">
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">Meeting Reports</h1>
+        <div className="max-w-6xl mx-auto space-y-6 p-2 md:p-6 animate-fade-in">
+            <div className="flex justify-between items-center pb-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Meeting Reports</h1>
+                    <p className="text-muted-foreground mt-1 text-sm">Generate and export meeting summary reports</p>
+                </div>
                 <button
                     onClick={downloadCSV}
                     disabled={reportData.length === 0}
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-secondary hover:text-foreground h-9 px-4 py-2"
+                    className="inline-flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-medium border border-border bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all focus:ring-2 focus:ring-indigo-500/30 disabled:pointer-events-none disabled:opacity-50"
                 >
+                    <Download className="w-4 h-4" />
                     Export CSV
                 </button>
             </div>
 
             {/* FILTERS */}
-            <div className="bg-card p-6 rounded-xl border border-border flex flex-wrap gap-4 items-end">
+            <div className="glass-card rounded-2xl p-6 flex flex-wrap gap-4 items-end">
                 <div>
-                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Start Date</label>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5 tracking-wider">Start Date</label>
                     <input
                         type="date"
                         value={startDate}
                         onChange={e => setStartDate(e.target.value)}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="h-10 w-full rounded-xl border border-border bg-white/60 backdrop-blur-sm px-3.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all"
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">End Date</label>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5 tracking-wider">End Date</label>
                     <input
                         type="date"
                         value={endDate}
                         onChange={e => setEndDate(e.target.value)}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="h-10 w-full rounded-xl border border-border bg-white/60 backdrop-blur-sm px-3.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all"
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Meeting Type</label>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5 tracking-wider">Meeting Type</label>
                     <select
                         value={typeId}
                         onChange={e => setTypeId(e.target.value)}
-                        className="flex h-10 w-40 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="h-10 w-40 rounded-xl border border-border bg-white/60 backdrop-blur-sm px-3.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all"
                     >
                         <option value="">All Types</option>
                         {meetingTypes.map(t => <option key={t.meeting_type_id} value={t.meeting_type_id}>{t.meeting_type_name}</option>)}
@@ -116,65 +121,71 @@ export default function ReportsPage() {
                 </div>
                 <button
                     onClick={fetchReport}
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6"
+                    className="h-10 px-6 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-500/10 active:scale-[0.98]"
                 >
+                    <Filter className="w-4 h-4 inline mr-1.5" />
                     Filter
                 </button>
                 <button
                     onClick={() => { setStartDate(''); setEndDate(''); setTypeId(''); fetchReport() }}
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-secondary hover:text-foreground h-10 px-4"
+                    className="h-10 px-4 rounded-xl text-sm font-medium text-muted-foreground hover:bg-white/50 transition-colors"
                 >
+                    <RefreshCw className="w-4 h-4 inline mr-1.5" />
                     Clear
                 </button>
             </div>
 
             {/* TABLE */}
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-secondary/50 border-b border-border">
-                        <tr>
-                            <th className="px-6 py-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
-                            <th className="px-6 py-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Description</th>
-                            <th className="px-6 py-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Attendance</th>
-                            <th className="px-6 py-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">MOM</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border text-sm">
-                        {loading ? (
-                            <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Loading report...</td></tr>
-                        ) : reportData.length === 0 ? (
-                            <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">No meetings found for the selected period.</td></tr>
-                        ) : (
-                            reportData.map(r => (
-                                <tr key={r.id} className="hover:bg-secondary/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap text-foreground">{new Date(r.date).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4 text-foreground font-medium">{r.type}</td>
-                                    <td className="px-6 py-4 text-muted-foreground max-w-xs truncate">{r.description || '—'}</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-16 bg-secondary rounded-full h-1.5 overflow-hidden">
-                                                <div className="bg-primary h-1.5" style={{ width: r.attendanceRate }}></div>
+            <div className="glass-card rounded-2xl overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-white/40 border-b border-border">
+                            <tr>
+                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Description</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Attendance</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">MOM</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border text-sm">
+                            {loading ? (
+                                <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">
+                                    <Loader2 className="w-5 h-5 animate-spin inline mr-2" />Loading report...
+                                </td></tr>
+                            ) : reportData.length === 0 ? (
+                                <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">No meetings found for the selected period.</td></tr>
+                            ) : (
+                                reportData.map(r => (
+                                    <tr key={r.id} className="hover:bg-white/40 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-foreground">{new Date(r.date).toLocaleDateString()}</td>
+                                        <td className="px-6 py-4 text-foreground font-medium">{r.type}</td>
+                                        <td className="px-6 py-4 text-muted-foreground max-w-xs truncate">{r.description || '—'}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                                    <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: r.attendanceRate }}></div>
+                                                </div>
+                                                <span className="text-xs text-muted-foreground">{r.presentMembers}/{r.totalMembers}</span>
                                             </div>
-                                            <span className="text-xs text-muted-foreground">{r.presentMembers}/{r.totalMembers}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {r.hasMOM ? (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                                Uploaded
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                                                Pending
-                                            </span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {r.hasMOM ? (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                    Uploaded
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-100">
+                                                    Pending
+                                                </span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     )

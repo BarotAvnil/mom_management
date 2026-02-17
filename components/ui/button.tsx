@@ -1,6 +1,4 @@
 import * as React from "react"
-// import { Slot } from "@radix-ui/react-slot" // Removed as not installed 
-// User didn't approve radix, so I'll write a standard button without Slot for now, but keeping it extensible.
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -14,24 +12,21 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ({ className, variant = "default", size = "default", isLoading, children, disabled, ...props }, ref) => {
 
-        // Base styles
-        const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+        const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]"
 
-        // Variants
         const variants = {
-            default: "bg-primary text-primary-foreground hover:bg-primary/90",
-            destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-            outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+            default: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm shadow-indigo-500/10",
+            destructive: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
+            outline: "border border-border bg-white/60 backdrop-blur-sm hover:bg-white/80 hover:text-foreground text-foreground",
             secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-            ghost: "hover:bg-accent hover:text-accent-foreground",
-            link: "text-primary underline-offset-4 hover:underline",
+            ghost: "hover:bg-white/50 hover:text-foreground",
+            link: "text-indigo-600 underline-offset-4 hover:underline",
         }
 
-        // Sizes
         const sizes = {
-            default: "h-10 px-4 py-2",
-            sm: "h-9 rounded-md px-3",
-            lg: "h-11 rounded-md px-8",
+            default: "h-10 px-5 py-2",
+            sm: "h-9 rounded-lg px-3.5",
+            lg: "h-11 rounded-xl px-8",
             icon: "h-10 w-10",
         }
 
