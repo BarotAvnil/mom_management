@@ -1,7 +1,8 @@
-
+// @ts-nocheck
 import { TOTP } from 'otplib';
 
 const instance = new TOTP({
+    // @ts-ignore
     step: 30,
     digits: 6,
     window: 1
