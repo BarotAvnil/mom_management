@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/Toast'
 import { User, Mail, Shield, Building2, Calendar, CheckCircle2, Clock, TrendingUp, FileText, AlertCircle, Briefcase, Eye, EyeOff } from 'lucide-react'
+import MfaSetup from '@/components/MfaSetup'
 
 export default function ProfilePage() {
     const router = useRouter()
@@ -330,7 +331,10 @@ export default function ProfilePage() {
             )}
 
             {activeTab === 'settings' && (
-                <div className="max-w-2xl animate-fade-in">
+                <div className="max-w-2xl animate-fade-in space-y-8">
+                    {/* MFA SECTION */}
+                    <MfaSetup isEnabled={user.is_mfa_enabled} />
+
                     <div className="glass-card p-8 rounded-2xl">
                         <form onSubmit={updateProfile} className="space-y-6">
                             <div>

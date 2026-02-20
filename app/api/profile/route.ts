@@ -20,6 +20,7 @@ export async function GET(req: Request) {
                 email: true,
                 role: true,
                 created_at: true,
+                is_mfa_enabled: true,
                 company: {
                     select: {
                         company_id: true,
@@ -33,6 +34,43 @@ export async function GET(req: Request) {
 
         if (!user) return NextResponse.json({ message: 'User not found' }, { status: 404 })
 
+        // ─── SUPER ADMIN LOGIC ───
+        if (user.role === 'SUPER_ADMIN') {
+            const totalCompanies = await prisma.companies.count()
+            const activeUsers = await prisma.users.count() // No is_active flag in schema, counting all
+            const pendingRegistrations = await prisma.registration_requests.count({ where: { status: 'PENDING' } })
+
+            const superAdminStats = {
+                totalCompanies,
+                activeUsers,
+                pendingRegistrations,
+            }
+
+            // Recent Platform Activity (Replaces Recent Meetings/Actions)
+            const recentActivity = await prisma.companies.findMany({
+                orderBy: { created_at: 'desc' },
+                take: 5,
+                select: {
+                    company_name: true,
+                    created_at: true,
+                    status: true,
+                }
+            }).then(companies => companies.map((c, index) => ({
+                id: index,
+                description: `New company registered: ${c.company_name}`,
+                date: c.created_at,
+                type: 'COMPANY_REGISTRATION',
+                status: c.status
+            })))
+
+            return NextResponse.json({
+                data: user,
+                stats: superAdminStats,
+                recentActivity,
+            })
+        }
+
+        // ─── TENANT USER LOGIC ───
         // Fetch activity stats for tenant users
         let stats = null
         let recentMeetings: any[] = []

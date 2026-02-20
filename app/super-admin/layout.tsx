@@ -57,11 +57,11 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     if (role !== 'SUPER_ADMIN') return null
 
     return (
-        <div className="flex min-h-screen bg-background bg-dot-pattern">
+        <div className="flex w-full h-full bg-background bg-dot-pattern">
             {/* Mobile Toggle */}
             <div className="md:hidden fixed top-0 left-0 w-full glass z-50 px-4 py-3 flex items-center justify-between">
                 <span className="font-bold text-lg text-foreground flex items-center gap-2.5">
-                    <Shield className="w-5 h-5 text-indigo-600" />
+                    <img src="/logo.png" alt="MOM Logo" className="w-8 h-8 object-contain rounded-lg shadow-sm" />
                     Super Admin
                 </span>
                 <button onClick={() => setIsOpen(!isOpen)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/60 backdrop-blur-sm border border-border text-foreground">
@@ -77,11 +77,9 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                 "fixed top-0 left-0 h-full glass-sidebar w-72 transform transition-transform duration-300 ease-in-out z-50 md:translate-x-0 md:static flex flex-col",
                 isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
             )}>
-                <div className="p-6 border-b border-white/10">
+                <div className="p-6 border-b border-white/10 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-400/20">
-                            <Shield className="w-5 h-5" />
-                        </div>
+                        <img src="/logo.png" alt="MOM Logo" className="w-10 h-10 object-contain rounded-xl shadow-md" />
                         <div>
                             <h2 className="text-lg font-bold text-foreground tracking-tight">Super Admin</h2>
                             <p className="text-xs text-muted-foreground">Platform Management</p>
@@ -114,16 +112,17 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                     })}
                 </nav>
 
+                {/* Footer */}
                 <div className="p-4 border-t border-white/10">
-                    <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-red-500 hover:bg-red-50/50 transition-all">
-                        <LogOut className="w-[18px] h-[18px]" />
-                        Logout
+                    <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50/80 transition-colors">
+                        <LogOut className="h-[18px] w-[18px]" />
+                        Sign Out
                     </button>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 md:ml-0 p-6 md:p-8 mt-14 md:mt-0 overflow-y-auto">
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-auto h-full w-full relative p-6 md:p-8 mt-14 md:mt-0">
                 {children}
             </main>
         </div>

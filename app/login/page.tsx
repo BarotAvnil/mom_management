@@ -11,8 +11,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  // MFA State
+  const [mfaRequired, setMfaRequired] = useState(false)
+  const [mfaCode, setMfaCode] = useState('')
+  const [tempToken, setTempToken] = useState('')
+
   const router = useRouter()
   const { addToast } = useToast()
+
+  const handleLoginSuccess = (data: any) => {
+    localStorage.setItem('token', data.token)
+    addToast('Welcome back!', 'success')
+    // SUPER_ADMIN goes to their dedicated panel, not the tenant dashboard
+    if (data.user?.role === 'SUPER_ADMIN') {
+      router.push('/super-admin')
+    } else {
+      router.push('/dashboard')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,20 +45,42 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (res.ok) {
-        localStorage.setItem('token', data.token)
-        addToast('Welcome back!', 'success')
-
-        // SUPER_ADMIN goes to their dedicated panel, not the tenant dashboard
-        if (data.user?.role === 'SUPER_ADMIN') {
-          router.push('/super-admin')
+        if (data.mfaRequired) {
+          setTempToken(data.tempToken)
+          setMfaRequired(true)
+          addToast('Please enter your 2FA code', 'info')
         } else {
-          router.push('/dashboard')
+          handleLoginSuccess(data)
         }
       } else {
         addToast(data.message || 'Login failed', 'error')
       }
     } catch (error) {
       addToast('Network error occurred', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const res = await fetch('/api/auth/mfa/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tempToken, code: mfaCode })
+      })
+      const data = await res.json()
+
+      if (res.ok) {
+        handleLoginSuccess(data)
+      } else {
+        addToast(data.message || 'Verification failed', 'error')
+      }
+    } catch (error) {
+      addToast('Network error', 'error')
     } finally {
       setLoading(false)
     }
@@ -60,9 +99,7 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white font-bold text-2xl border border-white/20">
-              M
-            </div>
+            <img src="/logo.png" alt="MOM Logo" className="w-12 h-12 object-contain rounded-xl shadow-md border border-white/20 bg-white/10 backdrop-blur-sm" />
             <span className="text-white/90 text-xl font-bold tracking-tight">MOM Mgmt</span>
           </div>
         </div>
@@ -103,81 +140,112 @@ export default function LoginPage() {
         <div className="w-full max-w-md animate-fade-in">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-10">
-            <div className="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-indigo-500/25">M</div>
+            <img src="/logo.png" alt="MOM Logo" className="w-14 h-14 object-contain rounded-xl mx-auto shadow-lg shadow-indigo-500/25" />
             <h2 className="text-2xl font-bold text-foreground mt-4">MOM Mgmt</h2>
           </div>
 
           <div className="glass rounded-2xl p-8 shadow-xl">
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-              <p className="text-muted-foreground text-sm mt-1">Sign in to your account to continue</p>
+              <h1 className="text-2xl font-bold text-foreground">
+                {mfaRequired ? 'Two-Factor Authentication' : 'Welcome back'}
+              </h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                {mfaRequired ? 'Enter the code from your authenticator app' : 'Sign in to your account to continue'}
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Email Address</label>
-                <div className="relative">
+            {mfaRequired ? (
+              <form onSubmit={handleMfaSubmit} className="space-y-5">
+                <div>
                   <input
-                    type="email"
+                    type="text"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 bg-white/60 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all text-sm"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="you@company.com"
+                    className="w-full text-center text-2xl font-mono tracking-widest py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all placeholder:text-slate-200 bg-white"
+                    value={mfaCode}
+                    onChange={e => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    autoFocus
                   />
-                  <Mail className="absolute left-3.5 top-3 w-4 h-4 text-muted-foreground" />
                 </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">Password</label>
-                  <Link href="/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">Forgot?</Link>
-                </div>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    className="w-full pl-10 pr-10 py-2.5 bg-white/60 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all text-sm"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted-foreground" />
+                <button
+                  type="submit"
+                  disabled={loading || mfaCode.length !== 6}
+                  className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-sm shadow-indigo-500/10 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+                </button>
+                <div className="text-center">
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                    onClick={() => setMfaRequired(false)}
+                    className="text-sm text-indigo-600 hover:text-indigo-700"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    Back to Login
                   </button>
                 </div>
-              </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Email Address</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      className="w-full pl-10 pr-4 py-2.5 bg-white/60 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all text-sm"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      placeholder="you@company.com"
+                    />
+                    <Mail className="absolute left-3.5 top-3 w-4 h-4 text-muted-foreground" />
+                  </div>
+                </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-sm shadow-indigo-500/10 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2 active:scale-[0.98]"
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    Sign In
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">Password</label>
+                    <Link href="/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">Forgot?</Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      required
+                      className="w-full pl-10 pr-10 py-2.5 bg-white/60 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 outline-none transition-all text-sm"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                    />
+                    <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted-foreground" />
+                  </div>
+                </div>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground space-y-1.5">
-              <div>
-                Want to register your company?{' '}
-                <Link href="/register-company" className="text-indigo-600 font-medium hover:text-indigo-700 transition-colors">
-                  Register Company
-                </Link>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-sm shadow-indigo-500/10 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      Sign In
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {!mfaRequired && (
+              <div className="mt-6 text-center text-sm text-muted-foreground space-y-1.5">
+                <div>
+                  Want to register your company?{' '}
+                  <Link href="/register-company" className="text-indigo-600 font-medium hover:text-indigo-700 transition-colors">
+                    Register Company
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

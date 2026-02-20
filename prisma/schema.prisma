@@ -85,6 +85,9 @@ model users {
   @@unique([company_id, email])
   @@index([company_id])
   @@index([role])
+
+  is_mfa_enabled Boolean @default(false)
+  mfa_secret     String?
 }
 
 model staff {

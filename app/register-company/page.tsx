@@ -77,7 +77,7 @@ export default function RegisterCompanyPage() {
 
                 <div className="relative z-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white font-bold text-2xl border border-white/20">M</div>
+                        <img src="/logo.png" alt="MOM Logo" className="w-12 h-12 object-contain rounded-xl shadow-md border border-white/20 bg-white/10 backdrop-blur-sm" />
                         <span className="text-white/90 text-xl font-bold tracking-tight">MOM Mgmt</span>
                     </div>
                 </div>
@@ -107,7 +107,7 @@ export default function RegisterCompanyPage() {
             <div className="flex-1 flex items-center justify-center p-8 bg-background bg-dot-pattern">
                 <div className="w-full max-w-md animate-fade-in">
                     <div className="lg:hidden text-center mb-10">
-                        <div className="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-3xl mx-auto shadow-lg shadow-indigo-500/25">M</div>
+                        <img src="/logo.png" alt="MOM Logo" className="w-14 h-14 object-contain rounded-xl mx-auto shadow-lg shadow-indigo-500/25" />
                         <h2 className="text-2xl font-bold text-foreground mt-4">Register Company</h2>
                     </div>
 

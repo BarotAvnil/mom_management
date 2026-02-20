@@ -5,12 +5,18 @@ A comprehensive, multi-tenant web application designed to streamline the process
 ## ✨ Key Features
 
 ### 🏢 Super Admin & Multi-Tenancy
-- **Tenant Management**: seamless handling of multiple companies within a single deployment.
+- **Centralized Dashboard**: Dedicated super admin panel to monitor system health and statistics.
+- **Tenant Management**: Seamless handling of multiple companies within a single deployment.
 - **User Administration**: Centralized control to manage users across different organizations.
 - **🛡️ Audit Logs**: Comprehensive tracking of critical system actions (logins, user changes, settings updates) for security and compliance.
 - **Registration Workflow**: Streamlined company registration and approval process.
 
-### 📅 Meeting Management
+### � Advanced Security & MFA
+- **Multi-Factor Authentication (MFA/2FA)**: Robust secondary authentication using Time-Based One-Time Passwords (TOTP).
+- **Authenticator App Support**: Compatible with Google Authenticator, Authy, and Microsoft Authenticator.
+- **Secure Sessions**: Enhanced session management ensuring high-security standards for administrative actions.
+
+### �📅 Meeting Management
 - **Dashboard Overview**: Instant visibility into upcoming meetings, pending tasks, and recent activities.
 - **Smart Scheduling**: Schedule meetings with detailed agendas, dates, and dynamic **Meeting Types** (e.g., HR, Tech, General).
 - **Status Tracking**: Monitor meetings through their lifecycle (Scheduled, Completed, Cancelled).
@@ -23,7 +29,8 @@ A comprehensive, multi-tenant web application designed to streamline the process
 
 ### 👥 Staff & Access Control
 - **Role-Based Access**: Granular permissions for Super Admins, Company Admins, and Standard Members.
-- **Staff Profiles**: detailed profiles with contact information and department association.
+- **Staff Profiles**: Detailed profiles with contact information, department association, and 2FA status.
+- **Self-Service Password Reset**: Administrator-managed password reset workflows with modern UI.
 
 ## 🛠️ Tech Stack
 

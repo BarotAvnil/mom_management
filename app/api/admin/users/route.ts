@@ -58,6 +58,7 @@ export async function GET(req: Request) {
                 email: true,
                 role: true,
                 created_at: true,
+                is_mfa_enabled: true,
                 company: {
                     select: {
                         company_name: true

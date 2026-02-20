@@ -59,7 +59,7 @@ export default function Sidebar() {
       {/* Mobile Toggle Bar */}
       <div className="md:hidden fixed top-0 left-0 w-full glass z-50 px-4 py-3 flex items-center justify-between">
         <span className="font-bold text-lg text-foreground flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20">M</div>
+          <img src="/logo.png" alt="MOM Logo" className="w-8 h-8 object-contain rounded-lg shadow-sm" />
           MOM Mgmt
         </span>
         <button
@@ -88,9 +88,7 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-400/20">
-              M
-            </div>
+            <img src="/logo.png" alt="MOM Logo" className="w-10 h-10 object-contain rounded-xl shadow-md" />
             <div>
               <h1 className="text-lg font-bold tracking-tight leading-none text-foreground">MOM Mgmt</h1>
               <p className="text-xs text-muted-foreground mt-1">Enterprise Edition</p>

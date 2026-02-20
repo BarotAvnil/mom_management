@@ -45,6 +45,21 @@ export async function POST(req: Request) {
       }
     }
 
+    // Check for MFA
+    if (user.is_mfa_enabled) {
+      const tempToken = jwt.sign(
+        { id: user.user_id, temp: true },
+        process.env.JWT_SECRET as string,
+        { expiresIn: '5m' } // Short expiry for MFA entry
+      )
+
+      return NextResponse.json({
+        message: 'MFA required',
+        mfaRequired: true,
+        tempToken
+      })
+    }
+
     // JWT includes company_id (null for SUPER_ADMIN)
     const token = jwt.sign(
       {

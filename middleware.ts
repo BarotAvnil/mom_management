@@ -14,7 +14,8 @@ const PUBLIC_PATHS = [
     '/register-company',
     '/forgot-password',
     '/reset-password',
-    '/api/auth/',
+    '/api/auth/login',         // Public: Initial login
+    '/api/auth/mfa/validate',  // Public: 2nd step login (uses temp token in body)
     '/api/registration',
     '/_next/',
     '/favicon.ico',

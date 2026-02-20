@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/ui/Toast'
-import { Search, Loader2, UserCog, Building2, KeyRound, AlertTriangle, X, Check, UserPlus } from 'lucide-react'
+import { Search, Loader2, UserCog, Building2, KeyRound, AlertTriangle, X, Check, UserPlus, ShieldCheck, ShieldAlert } from 'lucide-react'
 
 export default function UsersPage() {
     const { token, ready } = useAuth()
@@ -24,6 +24,10 @@ export default function UsersPage() {
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [companies, setCompanies] = useState<any[]>([])
     const [creating, setCreating] = useState(false)
+
+    // Reset MFA Modal
+    const [showMfaResetModal, setShowMfaResetModal] = useState(false)
+    const [mfaResetting, setMfaResetting] = useState(false)
     const [newUser, setNewUser] = useState({
         name: '',
         email: '',
@@ -139,6 +143,35 @@ export default function UsersPage() {
         }
     }
 
+    const handleResetMfa = async () => {
+        if (!selectedUser) return
+        setMfaResetting(true)
+        try {
+            const res = await fetch('/api/admin/users/reset-mfa', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ userId: selectedUser.user_id })
+            })
+
+            const data = await res.json()
+
+            if (res.ok) {
+                addToast('MFA reset successfully', 'success')
+                setShowMfaResetModal(false)
+                setSelectedUser(null)
+            } else {
+                addToast(data.message || 'Failed to reset MFA', 'error')
+            }
+        } catch (error) {
+            addToast('Network error', 'error')
+        } finally {
+            setMfaResetting(false)
+        }
+    }
+
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
             {/* Header */}
@@ -200,6 +233,7 @@ export default function UsersPage() {
                                     <tr>
                                         <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">User</th>
                                         <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Role</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">2FA</th>
                                         <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Company</th>
                                         <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
                                     </tr>
@@ -220,6 +254,19 @@ export default function UsersPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
+                                                {user.is_mfa_enabled ? (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                                        <ShieldCheck className="w-3.5 h-3.5" />
+                                                        Enabled
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 text-slate-500 border border-slate-100">
+                                                        <ShieldAlert className="w-3.5 h-3.5" />
+                                                        Disabled
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
                                                 {user.company ? (
                                                     <div className="flex items-center gap-2 text-sm text-foreground">
                                                         <Building2 className="w-4 h-4 text-slate-400" />
@@ -237,6 +284,19 @@ export default function UsersPage() {
                                                     <KeyRound className="w-3.5 h-3.5" />
                                                     Reset Password
                                                 </button>
+                                                {user.is_mfa_enabled && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedUser(user)
+                                                            setShowMfaResetModal(true)
+                                                        }}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-100 transition-colors ml-2"
+                                                        title="Reset 2FA"
+                                                    >
+                                                        <KeyRound className="w-3.5 h-3.5" />
+                                                        Reset 2FA
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -445,6 +505,60 @@ export default function UsersPage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MFA Reset Modal */}
+            {showMfaResetModal && selectedUser && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="glass rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-slide-up">
+                        <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="text-lg font-bold text-foreground">Reset 2FA</h3>
+                            <button
+                                onClick={() => {
+                                    setShowMfaResetModal(false)
+                                    setSelectedUser(null)
+                                }}
+                                className="w-8 h-8 flex items-center justify-center rounded-full text-muted-foreground hover:bg-white/50 hover:text-foreground transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-5">
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                                <div>
+                                    <p className="text-sm font-medium text-amber-900">Warning</p>
+                                    <p className="text-xs text-amber-700 mt-0.5">
+                                        This will disable 2FA for <strong>{selectedUser.name}</strong>. They will need to set it up again from their profile.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-3 justify-end pt-2">
+                                <button
+                                    onClick={() => {
+                                        setShowMfaResetModal(false)
+                                        setSelectedUser(null)
+                                    }}
+                                    className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-slate-100 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleResetMfa}
+                                    disabled={mfaResetting}
+                                    className="px-6 py-2 bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm shadow-amber-500/10"
+                                >
+                                    {mfaResetting ? (
+                                        <span className="flex items-center gap-2">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            Resetting...
+                                        </span>
+                                    ) : 'Confirm Reset'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
