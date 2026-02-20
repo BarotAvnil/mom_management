@@ -66,7 +66,7 @@ Follow these instructions to get the project up and running on your local machin
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/yourusername/mom_management.git
+    git clone https://github.com/BarotAvnil/mom_management.git
     cd mom_management
     ```
 
@@ -110,7 +110,3 @@ Follow these instructions to get the project up and running on your local machin
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License.
